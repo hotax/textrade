@@ -1,17 +1,6 @@
 /**
  * Created by clx on 2017/10/9.
  */
-/*const path = require('path'),
-    //restDir = path.join(__dirname, './server/rests'),
-    resourceDescriptors = require('@finelets/hyper-rest)./netup/rests/DirectoryResourceDescriptorsLoader').loadFrom(restDir),
-    resourceRegistry = require('./netup/rests/ResourceRegistry'),
-    //transitionsGraph = require('./netup/rests/StateTransitionsGraph'),
-    //transitionsGraph = require('./server/ANSteel/StateTransitionsGraph'),
-    graph = require('./server/ANSteel/StateTransitionsGraph'),
-    transitionsGraph = require('./netup/rests/BaseTransitionGraph')(graph, resourceRegistry),
-    connectDb = require('./netup/db/mongoDb/ConnectMongoDb'),
-    appBuilder = require('./netup/express/AppBuilder');*/
-
 const path = require('path'),
     restsDir = path.join(__dirname, './server/rests'),
     finelets = require('@finelets/hyper-rest'),
@@ -28,6 +17,7 @@ logger.level = 'debug';
 
 require('dotenv').config();
 resourceRegistry.setTransitionGraph(transitionsGraph);
+
 var app = function () {
     const defaultPort = 33579;
 
