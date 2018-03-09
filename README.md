@@ -1,2 +1,2 @@
 # textrade
-tex trade for hotex
+报价
