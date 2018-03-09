@@ -17,6 +17,8 @@ const path = require('path'),
     finelets = require('@finelets/hyper-rest'),
     resourceDescriptors = finelets.rests.directoryResourceDescriptorsLoader.loadFrom(restsDir),
     resourceRegistry = finelets.rests.resourceRegistry,
+    graph = require('./server/flow'),
+    transitionsGraph = finelets.rests.baseTransitionGraph(graph, resourceRegistry),
     connectDb = finelets.db.mongoDb.connectMongoDb,
     appBuilder = finelets.express.appBuilder;
 
@@ -25,7 +27,7 @@ var logger = log4js.getLogger();
 logger.level = 'debug';
 
 require('dotenv').config();
-//resourceRegistry.setTransitionGraph(transitionsGraph);
+resourceRegistry.setTransitionGraph(transitionsGraph);
 var app = function () {
     const defaultPort = 33579;
 
