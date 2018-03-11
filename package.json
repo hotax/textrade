@@ -8,9 +8,9 @@
     "test": "mocha --timeout 15000 -r tests/testhelper.js -R spec tests/**/*.test.js"
   },
   "dependencies": {
-    "@finelets/hyper-rest": "^1.0.6",
+    "@finelets/hyper-rest": "^1.0.7",
     "bluebird": "^3.4.6",
-    "body-parser": "^1.15.2",
+    "dotenv": "^5.0.1",
     "log4js": "^2.5.3",
     "moment": "^2.21.0",
     "mongodb": "^3.0.4",
