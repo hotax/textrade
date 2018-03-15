@@ -20,7 +20,7 @@ describe('Textrade', function () {
             mongoose.Promise = global.Promise;
             if (mongoose.connection.db) return done();
             mongoose.connect(dbURI, done);
-            initDB(insertDocsInSequential, done);
+            //initDB(insertDocsInSequential, done);
             //initDB(insertDocsInParallel, done);
         });
 
