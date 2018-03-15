@@ -41,6 +41,6 @@ describe('Textrade', function () {
     });
 
     it('test', function () {
-        //test for remote repo 1
+        //test for remote repo 2
     })
 });
