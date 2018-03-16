@@ -4,7 +4,7 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "node index.js",
     "test": "mocha --timeout 15000 -r tests/testhelper.js -R spec tests/**/*.test.js"
   },
   "dependencies": {
