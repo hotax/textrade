@@ -21,7 +21,7 @@ describe('Application', function() {
         clearDB(done);
     });
 
-    describe('销售子系统', function() {
+    describe('数据库', function() {
         it('aass', function() {
             expect(1).eqls(1);
         })
