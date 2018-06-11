@@ -1,8 +1,6 @@
 require('dotenv').config();
 
 const path = require('path'),
-    //cookieParser = require('cookie-parser'),
-    //cors = require('cors'),
     restsDir = path.join(__dirname, './server/rests'),
     resourceDescriptors = require('@finelets/hyper-rest/rests/DirectoryResourceDescriptorsLoader').loadFrom(restsDir),
     resourceRegistry = require('@finelets/hyper-rest/rests/ResourceRegistry'),
@@ -11,27 +9,18 @@ const path = require('path'),
     connectDb = require('@finelets/hyper-rest/db/mongoDb/ConnectMongoDb'),
     sessionStore = require('@finelets/hyper-rest/session/MongoDbSessionStore')(1000 * 60 * 60 * 24), // set session for 1 day
     appBuilder = require('@finelets/hyper-rest/express/AppBuilder').begin(__dirname),
-    // passport = require('passport'),
-    // passport = require('./server/authGithub'),
-    passport = require('./server/auth'),
+    passport = require('./server/authGithub'),
+    CLIENT_ORIGIN = process.env.CLIENT_ORIGIN,
     logger = require('@finelets/hyper-rest/app/Logger');
-/* CLIENT_ORIGIN = process.env.CLIENT_ORIGIN,
-SECRET = process.env.SECRET,
-corsOptions = {
-    origin: CLIENT_ORIGIN,
-    credentials: true,
-}; */
 
 resourceRegistry.setTransitionGraph(transitionsGraph);
 
 var app = appBuilder.getApp();
-//app.use(cors(corsOptions))
-//app.use(cookieParser(SECRET))
 app.use(passport.initialize())
 app.use(passport.session())
-// app.get('/api/auth/github', passport.authenticate('github'));
 
-/* app.get('/api/auth/callback', passport.authenticate('google', {
+
+app.get('/api/auth/callback', passport.authenticate('github', {
         failureRedirect: '/error'
     }),
     function (req, res) {
@@ -44,7 +33,7 @@ app.use(passport.session())
       Success!
     </body>
     </html>`)
-    }); */
+    });
 
 appBuilder.setResources(resourceRegistry, resourceDescriptors)
     .setWebRoot('/', './client')
