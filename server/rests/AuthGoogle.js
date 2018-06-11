@@ -1,5 +1,4 @@
-const passport = require('passport'),
-    logger = require('@finelets/hyper-rest/app/Logger');
+const passport = require('passport');
 
 const auth = passport.authenticate('google', {
     scope: ['https://www.googleapis.com/auth/plus.login'],

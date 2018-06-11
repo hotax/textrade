@@ -1,5 +1,10 @@
-const passport = require('passport'),
-    CLIENT_ORIGIN = process.env.CLIENT_ORIGIN,
+const googleapis = require('googleapis'),
+    oauth2Client = new googleapis.google.auth.OAuth2(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
+        process.env.GOOGLE_CALLBACK_URL
+    )
+CLIENT_ORIGIN = process.env.CLIENT_ORIGIN,
     logger = require('@finelets/hyper-rest/app/Logger');
 
 const html = `<html>
@@ -11,14 +16,24 @@ const html = `<html>
       Success!
     </body>
     </html>`;
-const __cb = function (req, res) {
-    res.send(html);
+
+const auth = function (req, res) {
+    var code = req.query.code;
+    logger.info('code:' + code);
+    return oauth2Client.getToken(code)
+        .then(function (data) {
+            logger.info('It\'s ok !!!!');
+            oauth2Client.setCredentials(data.tokens);
+            return res.send(html);
+        })
+        .catch(function (e) {
+            logger.error(e);
+            res.send(html);
+        })
 }
 
-const auth = passport.authenticate('google', __cb);
-
 module.exports = {
-    url: '/api1/auth/google/callback',
+    url: '/api/auth/callback',
     rests: [{
         type: 'get',
         handler: auth
