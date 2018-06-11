@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const path = require('path'),
+    cors = require('cors'),
     restsDir = path.join(__dirname, './server/rests'),
     resourceDescriptors = require('@finelets/hyper-rest/rests/DirectoryResourceDescriptorsLoader').loadFrom(restsDir),
     resourceRegistry = require('@finelets/hyper-rest/rests/ResourceRegistry'),
@@ -11,13 +12,18 @@ const path = require('path'),
     appBuilder = require('@finelets/hyper-rest/express/AppBuilder').begin(__dirname),
     passport = require('./server/authGithub'),
     CLIENT_ORIGIN = process.env.CLIENT_ORIGIN,
+    corsOptions = {
+        origin: CLIENT_ORIGIN,
+        credentials: true,
+    },
     logger = require('@finelets/hyper-rest/app/Logger');
 
 resourceRegistry.setTransitionGraph(transitionsGraph);
 
 var app = appBuilder.getApp();
-app.use(passport.initialize())
-app.use(passport.session())
+app.use(cors(corsOptions));
+app.use(passport.initialize());
+app.use(passport.session());
 
 
 app.get('/api/auth/callback', passport.authenticate('github', {
