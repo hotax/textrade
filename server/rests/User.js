@@ -4,22 +4,18 @@ const Users = require('../db/users'),
 const sendUserInfo = function (req, res) {
     const {
         user
-    } = req.cookies;
-    return Users.getById(user)
-        .then(function (data) {
-            var result = data ? {
-                id: data.gitProfile.id,
-                profile: data.gitProfile,
-                accessToken: data.accessToken,
-                refreshToken: data.refreshToken,
-            } : null;
-            logger.info('The user in request:' + JSON.stringify(result));
-            return res.json(result);
-        })
+    } = req;
+    var result = {
+        id: user.gitProfile.id,
+        profile: user.gitProfile,
+        accessToken: user.accessToken,
+        refreshToken: user.refreshToken,
+    };
+    res.json(result);
 }
 
 const handle = function (req, res) {
-    if (!req.cookies.user) {
+    if (!req.user) {
         logger.info('The user in request is null');
         res.send('null');
     } else {

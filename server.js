@@ -2,26 +2,54 @@ require('dotenv').config();
 
 const path = require('path'),
     cors = require('cors'),
+    cookieParser = require('cookie-parser'),
+    session = require('express-session'),
+    uuid = require('uuid-v4'),
+    SocketIo = require('socket.io'),
+    PassportSocketIo = require('passport.socketio'),
+    NedbStore = require('nedb-session-store'),
     restsDir = path.join(__dirname, './server/rests'),
     resourceDescriptors = require('@finelets/hyper-rest/rests/DirectoryResourceDescriptorsLoader').loadFrom(restsDir),
     resourceRegistry = require('@finelets/hyper-rest/rests/ResourceRegistry'),
     graph = require('./server/flow'),
     transitionsGraph = require('@finelets/hyper-rest/rests/BaseTransitionGraph')(graph, resourceRegistry),
     connectDb = require('@finelets/hyper-rest/db/mongoDb/ConnectMongoDb'),
-    sessionStore = require('@finelets/hyper-rest/session/MongoDbSessionStore')(1000 * 60 * 60 * 24), // set session for 1 day
+    // sessionStore = require('@finelets/hyper-rest/session/MongoDbSessionStore')(1000 * 60 * 60 * 24), // set session for 1 day
     appBuilder = require('@finelets/hyper-rest/express/AppBuilder').begin(__dirname),
     passport = require('./server/authGithub'),
     CLIENT_ORIGIN = process.env.CLIENT_ORIGIN,
+    SECRET = process.env.SESSION_SECRET,
     corsOptions = {
         origin: CLIENT_ORIGIN,
         credentials: true
     },
     logger = require('@finelets/hyper-rest/app/Logger');
 
+const NedbSessionStore = NedbStore(session);
+const sessionStore = new NedbSessionStore({
+    filename: path.join('./db', 'session-store.db')
+});
+const sessionOptions = {
+    genid: function () {
+        return uuid();
+    },
+    key: 'express.sid',
+    secret: SECRET,
+    resave: true,
+    saveUninitialized: true,
+    cookie: {
+        maxAge: 3 * 60 * 60 * 1000,
+        secure: process.env.NODE_ENV === 'production',
+    },
+    store: sessionStore,
+};
+
 resourceRegistry.setTransitionGraph(transitionsGraph);
 
 var app = appBuilder.getApp();
 app.use(cors(corsOptions));
+app.use(cookieParser(SECRET));
+app.use(session(sessionOptions));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -48,13 +76,24 @@ appBuilder
     .setResources(resourceRegistry, resourceDescriptors)
     .setWebRoot('/root', './client')
     .setFavicon('client/images/favicon.jpg')
-    .setSessionStore(sessionStore)
+    // .setSessionStore(sessionStore)
     .end();
 
 connectDb(function () {
     logger.info('connect mongodb success .......');
     var server = appBuilder.run(function () {
-        // sessionStore.authByServer(server);
+        const io = SocketIo(server)
+
+        io.use(PassportSocketIo.authorize({
+            cookieParser,
+            key: 'express.sid',
+            secret: SECRET,
+            store: sessionStore,
+            success: function (data, accept) {
+                logger.info('socket.io auth success');
+                accept();
+            },
+        }))
         var addr = server.address();
         logger.info('the server is running and listening at ' + addr.port);
     });
