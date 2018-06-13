@@ -16,9 +16,10 @@ const sendUserInfo = function (req, res) {
 
 const handle = function (req, res) {
     if (!req.user) {
-        logger.info('The user in request is null');
+        logger.debug('The user in request is null, because the user does not login!');
         res.send('null');
     } else {
+        logger.debug('The use already login');
         sendUserInfo(req, res);
     }
 }

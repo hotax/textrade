@@ -55,11 +55,9 @@ app.use(passport.session());
 
 app.get(
     '/api/auth/callback',
-    passport.authenticate('github', {
-        failureRedirect: '/error'
-    }),
+    passport.authenticate('github'),
     function (req, res) {
-        res.cookie('user', req.user.gitProfile.id)
+        logger.debug('auth success! next, we will post a success message to client orgin!');
         res.send(`<html>
     <body>
       <script>

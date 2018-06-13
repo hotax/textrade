@@ -10,9 +10,9 @@ passport.use(new GithubStrategy({
         passReqToCallback: true
     },
     function (req, accessToken, refreshToken, profile, done) {
-        logger.info('accessToken:' + accessToken);
-        logger.info('refreshToken:' + refreshToken);
-        logger.info('profile:' + JSON.stringify(profile));
+        logger.debug('using github auth strategy, already obtain github auth!:');
+        logger.debug('accessToken:' + accessToken);
+        logger.debug('profile:' + JSON.stringify(profile));
         return Users.findOrCreate({
                 gitProfile: {
                     id: profile.id,
@@ -31,12 +31,12 @@ passport.use(new GithubStrategy({
     }));
 
 passport.serializeUser(function (user, done) {
-    logger.info('serialize user:' + user.gitProfile.id);
+    logger.debug('serialize userId:' + user.gitProfile.id);
     return done(null, user.gitProfile.id);
 })
 
 passport.deserializeUser(function (id, done) {
-    logger.info('deserialize user:' + id);
+    logger.debug('deserialize userId:' + id);
     return Users.getById(id)
         .then(function (user) {
             return done(null, user);
