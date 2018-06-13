@@ -1,4 +1,4 @@
-const users = []
+const users = [];
 
 module.exports = {
     findOrCreate: function (data) {

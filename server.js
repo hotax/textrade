@@ -14,7 +14,7 @@ const path = require('path'),
     CLIENT_ORIGIN = process.env.CLIENT_ORIGIN,
     corsOptions = {
         origin: CLIENT_ORIGIN,
-        credentials: true,
+        credentials: true
     },
     logger = require('@finelets/hyper-rest/app/Logger');
 
@@ -25,11 +25,13 @@ app.use(cors(corsOptions));
 app.use(passport.initialize());
 app.use(passport.session());
 
-
-app.get('/api/auth/callback', passport.authenticate('github', {
+app.get(
+    '/api/auth/callback',
+    passport.authenticate('github', {
         failureRedirect: '/error'
     }),
     function (req, res) {
+        res.cookie('user', req.user.gitProfile.id)
         res.send(`<html>
     <body>
       <script>
@@ -38,19 +40,21 @@ app.get('/api/auth/callback', passport.authenticate('github', {
       </script>
       Success!
     </body>
-    </html>`)
-    });
+    </html>`);
+    }
+);
 
-appBuilder.setResources(resourceRegistry, resourceDescriptors)
-    .setWebRoot('/', './client')
+appBuilder
+    .setResources(resourceRegistry, resourceDescriptors)
+    .setWebRoot('/root', './client')
     .setFavicon('client/images/favicon.jpg')
     .setSessionStore(sessionStore)
     .end();
 
-
 connectDb(function () {
     logger.info('connect mongodb success .......');
     var server = appBuilder.run(function () {
+        // sessionStore.authByServer(server);
         var addr = server.address();
         logger.info('the server is running and listening at ' + addr.port);
     });
