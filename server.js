@@ -80,10 +80,9 @@ appBuilder
 connectDb(function () {
     logger.info('connect mongodb success .......');
     var server = appBuilder.run(function () {
-        const io = SocketIo(server)
-
+        const io = SocketIo(server);
         io.use(PassportSocketIo.authorize({
-            cookieParser,
+            cookieParser: cookieParser,
             key: 'express.sid',
             secret: SECRET,
             store: sessionStore,
@@ -91,7 +90,7 @@ connectDb(function () {
                 logger.info('socket.io auth success');
                 accept();
             },
-        }))
+        }));
         var addr = server.address();
         logger.info('the server is running and listening at ' + addr.port);
     });
