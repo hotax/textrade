@@ -36,8 +36,8 @@ const sessionOptions = {
 	},
 	key: 'express.sid',
 	secret: SECRET,
-	resave: true,
-	saveUninitialized: true,
+	resave: false,
+	saveUninitialized: false,
 	cookie: {
 		maxAge: 3 * 60 * 60 * 1000,
 		secure: process.env.NODE_ENV === 'production'
