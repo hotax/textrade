@@ -7,7 +7,6 @@ const path = require('path'),
 	uuid = require('uuid-v4'),
 	SocketIo = require('socket.io'),
 	PassportSocketIo = require('passport.socketio'),
-	//NedbStore = require('nedb-session-store'),
 	MongodbStore = require('connect-mongo'),
 	restsDir = path.join(__dirname, './server/rests'),
 	resourceDescriptors = require('@finelets/hyper-rest/rests/DirectoryResourceDescriptorsLoader').loadFrom(restsDir),
@@ -15,7 +14,8 @@ const path = require('path'),
 	graph = require('./server/flow'),
 	transitionsGraph = require('@finelets/hyper-rest/rests/BaseTransitionGraph')(graph, resourceRegistry),
 	connectDb = require('@finelets/hyper-rest/db/mongoDb/ConnectMongoDb'),
-	// sessionStore = require('@finelets/hyper-rest/session/MongoDbSessionStore')(1000 * 60 * 60 * 24), // set session for 1 day
+	//sessionStore = require('@finelets/hyper-rest/session/MongoDbSessionStore')(1000 * 60 * 60 * 24), // set session for 1 day
+	//sessionStore = require('@finelets/hyper-rest/session/NeDbSessionStore')(1000 * 60 * 60 * 24), // set session for 1 day
 	appBuilder = require('@finelets/hyper-rest/express/AppBuilder').begin(__dirname),
 	passport = require('./server/authGithub'),
 	CLIENT_ORIGIN = process.env.CLIENT_ORIGIN,
@@ -26,16 +26,12 @@ const path = require('path'),
 	},
 	logger = require('@finelets/hyper-rest/app/Logger');
 
-/* const NedbSessionStore = NedbStore(session);
-const sessionStore = new NedbSessionStore({
-    filename: path.join('./db', 'session-store.db')
-}); */
 const MongodbSessionStore = MongodbStore(session);
 const sessionStore = new MongodbSessionStore({
 	url: process.env.MONGODB
 });
 const sessionOptions = {
-	genid: function() {
+	genid: function () {
 		return uuid();
 	},
 	key: 'express.sid',
@@ -58,7 +54,7 @@ app.use(session(sessionOptions));
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.get('/api/auth/callback', passport.authenticate('github'), function(req, res) {
+app.get('/api/auth/callback', passport.authenticate('github'), function (req, res) {
 	logger.debug('auth success! next, we will post a success message to client orgin!');
 	res.send(`<html>
     <body>
@@ -75,12 +71,12 @@ appBuilder
 	.setResources(resourceRegistry, resourceDescriptors)
 	.setWebRoot('/root', './client')
 	.setFavicon('client/images/favicon.jpg')
-	// .setSessionStore(sessionStore)
+	//.setSessionStore(sessionStore)
 	.end();
 
-connectDb(function() {
+connectDb(function () {
 	logger.info('connect mongodb success .......');
-	var server = appBuilder.run(function() {
+	var server = appBuilder.run(function () {
 		const io = SocketIo(server);
 		io.use(
 			PassportSocketIo.authorize({
@@ -88,13 +84,13 @@ connectDb(function() {
 				key: 'express.sid',
 				secret: SECRET,
 				store: sessionStore,
-				success: function(data, accept) {
+				success: function (data, accept) {
 					logger.info('socket.io auth success');
 					accept();
 				}
 			})
 		);
-		var addr = server.address();
+		const addr = server.address();
 		logger.info('the server is running and listening at ' + addr.port);
 	});
 });
