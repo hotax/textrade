@@ -1,14 +1,13 @@
 var proxyquire = require('proxyquire'),
-    mongoose = require('mongoose'),
     dbSave = require('@finelets/hyper-rest/db/mongoDb/SaveObjectToDb');
 
-describe('Application', function() {
+describe('Application', function () {
     var func, stubs, err, reason, createReasonStub;
-    before(function() {
+    before(function () {
         mongoose.Promise = global.Promise;
     });
 
-    beforeEach(function(done) {
+    beforeEach(function () {
         stubs = {};
         err = new Error('any error message');
         reason = {
@@ -18,12 +17,17 @@ describe('Application', function() {
         stubs['@finelets/hyper-rest/app'] = {
             createErrorReason: createReasonStub
         };
-        clearDB(done);
     });
 
-    describe('数据库', function() {
-        it('aass', function() {
-            expect(1).eqls(1);
-        })
+    describe('数据库', function () {
+        beforeEach(function (done) {
+            if (mongoose.connection.db) return done();
+            mongoose.connect(dbURI, done);
+        });
+
+        it('aass', function () {
+            var x = 1;
+            expect(x).eqls(1);
+        });
     });
 });
