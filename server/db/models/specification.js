@@ -6,12 +6,12 @@ const mongoose = require('mongoose'),
 const YarnValueSchema = new Schema({
     value: [Number],
     unit: String
-});
+}, transformOption);
 
 const YarnSchema = new Schema({
     warp: YarnValueSchema,
     weft: YarnValueSchema
-});
+}, transformOption);
 
 const SpecificationSchema = new Schema({
     code: String, //编码
@@ -33,8 +33,16 @@ const SpecificationSchema = new Schema({
     },
     //state: {type: Number, enum: ['draft', 'published', 'expired']},
     //author: ObjectId,
-    createDate: { type: Date, default: Date.now, required: true },
-    modifiedDate: { type: Date, default: Date.now, required: true }
-});
+    createDate: {
+        type: Date,
+        default: Date.now,
+        required: true
+    },
+    modifiedDate: {
+        type: Date,
+        default: Date.now,
+        required: true
+    }
+}, transformOption);
 
 module.exports = mongoose.model('Specification', SpecificationSchema);

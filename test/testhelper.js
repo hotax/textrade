@@ -38,7 +38,8 @@ global.insertDocsInSequential = function insertDocsInSequential(model, docs, cal
 }
 global.insertDocsInParallel = function insertDocsInParallel(model, docs, callback) {
     var result = [];
-    var finished = 0, errored = false;
+    var finished = 0,
+        errored = false;
 
     function done(err, data) {
         if (err) {

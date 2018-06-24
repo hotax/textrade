@@ -1,7 +1,8 @@
 var proxyquire = require('proxyquire'),
+	dbSchema = require('../server/db/models'),
 	dbSave = require('@finelets/hyper-rest/db/mongoDb/SaveObjectToDb');
 
-describe('Application', function() {
+describe('All', function() {
 	var func, stubs, err, reason, createReasonStub;
 	before(function() {
 		mongoose.Promise = global.Promise;
@@ -19,15 +20,76 @@ describe('Application', function() {
 		};
 	});
 
+	describe('平台', function() {
+		describe('查询条件', function() {
+			/* const Operstors = require('../finelets/db/QueryOperstorDef'); */
+			//const condiBuild = require('../finelets/db/QueryCondiBuilder');
+			//const field = 'fld';
+
+			it('等于指定值', function() {
+				/* var val = 'foo';
+				expect(
+					condiBuild({
+						field: field,
+						operator: Operstors.EQUALS,
+						value: val
+					})
+				).eqls({ fld: val }); */
+			});
+		});
+	});
+
 	describe('数据库', function() {
-		beforeEach(function(done) {
+		before(function(done) {
 			if (mongoose.connection.db) return done();
 			mongoose.connect(dbURI, done);
 		});
 
-		it('aass', function() {
-			var x = 1;
-			expect(x).eqls(1);
+		beforeEach(function(done) {
+			clearDB(done);
+		});
+
+		describe('规格', function() {
+			it('编码等于指定值', function() {
+				var docInDb;
+				const specsQuery = require('../server/db/SpecsQuery');
+
+				return dbSave(dbSchema.specs, {
+					code: 'Foo'
+				})
+					.then(function(doc) {
+						docInDb = doc.toJSON();
+						return specsQuery.find({
+							code: 'Foo'
+						});
+					})
+					.then(function(docs) {
+						expect(docs.length).eqls(1);
+						expect(docs[0]).eqls(docInDb);
+					});
+			});
+
+			it('编码符合正则表达式', function() {
+				var docInDb;
+				const specsQuery = require('../server/db/SpecsQuery');
+
+				return dbSave(dbSchema.specs, {
+					code: 'sdAdFoosdcsdc'
+				})
+					.then(function(doc) {
+						docInDb = doc.toJSON();
+						var exp = new RegExp('fooS', 'i');
+						return specsQuery.find({
+							code: {
+								$regex: exp
+							}
+						});
+					})
+					.then(function(docs) {
+						expect(docs.length).eqls(1);
+						expect(docs[0]).eqls(docInDb);
+					});
+			});
 		});
 	});
 });
