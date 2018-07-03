@@ -1,48 +1,51 @@
 const mongoose = require('mongoose'),
-    Schema = mongoose.Schema,
-    ObjectId = Schema.Types.ObjectId,
-    transformOption = require("@finelets/hyper-rest/db/mongoDb/DocTransformOption");
-
-const YarnValueSchema = new Schema({
-    value: [Number],
-    unit: String
-}, transformOption);
+  Schema = mongoose.Schema,
+  ObjectId = Schema.Types.ObjectId,
+  transformOption = require('@finelets/hyper-rest/db/mongoDb/DocTransformOption')
 
 const YarnSchema = new Schema({
-    warp: YarnValueSchema,
-    weft: YarnValueSchema
-}, transformOption);
+    warp: [Number],
+    weft: [Number]
+  },
+  transformOption
+)
 
 const SpecificationSchema = new Schema({
-    code: String, //编码
-    name: String, //名称
+    code: {
+      type: String,
+      required: true
+    },
+    name: String,
     desc: String,
     constructure: String,
+    yarnUnit: String,
+    yarn: YarnSchema,
+    dnstyUnit: String,
     grey: {
-        yarn: YarnSchema,
-        dnsty: YarnSchema,
-        width: Number,
-        GSM: Number
+      dnsty: YarnSchema,
+      width: Number,
+      GSM: Number
     },
     product: {
-        yarn: YarnSchema,
-        dnstyBW: YarnSchema,
-        dnstyAW: YarnSchema,
-        width: Number,
-        GSM: Number
+      dnstyBW: YarnSchema,
+      dnstyAW: YarnSchema,
+      width: Number,
+      GSM: Number
     },
-    //state: {type: Number, enum: ['draft', 'published', 'expired']},
-    //author: ObjectId,
+    // state: {type: Number, enum: ['draft', 'published', 'expired']},
+    // author: ObjectId,
     createDate: {
-        type: Date,
-        default: Date.now,
-        required: true
+      type: Date,
+      default: Date.now,
+      required: true
     },
     modifiedDate: {
-        type: Date,
-        default: Date.now,
-        required: true
+      type: Date,
+      default: Date.now,
+      required: true
     }
-}, transformOption);
+  },
+  transformOption
+)
 
-module.exports = mongoose.model('Specification', SpecificationSchema);
+module.exports = mongoose.model('Specification', SpecificationSchema)
