@@ -3,9 +3,7 @@
  */
 module.exports = {
     url: '/api',
-    rests: [
-        {
-            type: 'entry'
-        }
-    ]
+    rests: [{
+        type: 'entry'
+    }]
 }

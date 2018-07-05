@@ -4,10 +4,11 @@
 	"description": "",
 	"main": "server.js",
 	"scripts": {
+		"debug": "node --nolazy --inspect-brk=9229 server.js",
 		"test": "mocha --inspect-brk"
 	},
 	"dependencies": {
-		"@finelets/hyper-rest": "^1.2.33",
+		"@finelets/hyper-rest": "^2.1.0",
 		"bluebird": "^3.5.1",
 		"connect-mongo": "^2.0.1",
 		"cookie-parser": "^1.4.3",
@@ -16,8 +17,8 @@
 		"express-session": "^1.15.6",
 		"googleapis": "^32.0.0",
 		"moment": "^2.22.2",
-		"mongodb": "^2.2.10",
-		"mongoose": "^4.6.4",
+		"mongodb": "^3.1.0",
+		"mongoose": "^5.2.0",
 		"nedb-session-store": "^1.1.2",
 		"passport": "^0.4.0",
 		"passport-github2": "^0.1.11",

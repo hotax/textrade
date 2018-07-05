@@ -6,7 +6,18 @@ module.exports = {
         Quotor: "Quotor"
     },
     Quotor: {
-        //"search": "SearchQuotes",
+        "createSpec": "Specifications",
         "exit": "Login"
+    },
+    Specifications: {
+        "create": 'Specifications',
+        "home": "Quotor"
+    },
+    Specification: {
+        self: "Specification",
+        edit: {
+            id: "Specification"
+        },
+        "query": "Specifications"
     }
 }
