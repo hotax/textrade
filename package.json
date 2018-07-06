@@ -8,7 +8,7 @@
 		"test": "mocha --inspect-brk"
 	},
 	"dependencies": {
-		"@finelets/hyper-rest": "^2.1.0",
+		"@finelets/hyper-rest": "^2.1.2",
 		"bluebird": "^3.5.1",
 		"connect-mongo": "^2.0.1",
 		"cookie-parser": "^1.4.3",
