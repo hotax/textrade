@@ -13,9 +13,10 @@ chai.use(chaiAsPromised);
 var sinonStubPromise = require('sinon-stub-promise');
 sinonStubPromise(sinon);
 
-global.dbURI = 'mongodb://localhost/test';
+global.dbURI = 'mongodb://localhost:27017/test';
 global.mongoose = require('mongoose');
-global.clearDB = require('mocha-mongoose')(dbURI);
+//global.clearDB = require('mocha-mongoose')(dbURI);
+global.clearDB = require('@finelets/hyper-rest/db/mongoDb/clearDB')(dbURI);
 
 global.expect = chai.expect;
 global.sinon = sinon;

@@ -6,6 +6,7 @@ module.exports = {
         Quotor: "Quotor"
     },
     Quotor: {
+        "query": "Specifications",
         "createSpec": "Specifications",
         "exit": "Login"
     },

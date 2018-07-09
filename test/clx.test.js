@@ -40,13 +40,13 @@ describe('All', function () {
 	});
 
 	describe('数据库', function () {
-		before(function (done) {
+		before(function () {
 			if (mongoose.connection.db) return done();
-			mongoose.connect(dbURI, done);
+			return mongoose.connect(dbURI)
 		});
 
 		beforeEach(function (done) {
-			clearDB(done);
+			return clearDB(done);
 		});
 
 		describe('规格库', function () {
@@ -81,6 +81,24 @@ describe('All', function () {
 					})
 			});
 
+			it('按给定条件查询规格', function () {
+				var saveDocs = [];
+				const save = function (i) {
+					return dbSave(dbSchema.specs, {
+						code: '000' + i
+					})
+				}
+				for (var i = 0; i < 3; i++) {
+					saveDocs.push(save(i));
+				}
+				return Promise.all(saveDocs)
+					.then(function () {
+						return specDb.find({});
+					})
+					.then(function (data) {
+						expect(data.length).eqls(3);
+					})
+			});
 		});
 
 		describe('规格', function () {
