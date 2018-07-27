@@ -9,6 +9,7 @@ const list = function (query) {
     } catch (e) {
         condi = {}
     }
+    logger.debug(JSON.stringify(condi));
     return specsDb.find(condi)
         .then(function (list) {
             return {

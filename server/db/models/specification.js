@@ -17,6 +17,7 @@ const SpecificationSchema = new Schema({
     },
     name: String,
     desc: String,
+    component: String,
     constructure: String,
     yarnUnit: String,
     yarn: YarnSchema,
