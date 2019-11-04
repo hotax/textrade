@@ -1,19 +1,22 @@
-FROM node:carbon
+FROM node:latest
 
-# Create app directory
-WORKDIR /usr/src/textrade
+# Provides cached layer for node_modules
+ADD package.json /tmp/package.json
+RUN cd /tmp && npm install
+RUN mkdir -p /src && cp -a /tmp/node_modules /src/
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
-COPY package*.json ./
+# Define working directory
+WORKDIR /src
+ADD . /src
 
-RUN npm install
-# If you are building your code for production
-# RUN npm install --only=production
+ENV PORT 8080
+ENV MONGODB=mongodb://crossdb:27017/Cross
+ENV CLIENT_ORIGIN=http://192.168.5.166/jsmetta
+ENV MQ=amqp://jsm:jsm@rabbitmq
+ENV JWT_SECRET=MFswDQYJKoZIhvcNAQEBBQADSgAwRwJAamUL/pm3t5EZ
 
-# Bundle app source
-COPY . .
+# Expose port
+EXPOSE  8080
 
-EXPOSE 80
-CMD [ "node", "index" ]
+# Run app using nodemon
+CMD ["node", "/src/server.js"]

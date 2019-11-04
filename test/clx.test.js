@@ -40,7 +40,7 @@ describe('All', function () {
 	});
 
 	describe('数据库', function () {
-		before(function () {
+		before(function (done) {
 			if (mongoose.connection.db) return done();
 			return mongoose.connect(dbURI)
 		});

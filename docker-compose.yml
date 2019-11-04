@@ -1,0 +1,40 @@
+version: "2"
+services:
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+        - "6379"
+  rabbitmq:
+    image: "rabbitmq:management"
+    environment:
+      - RABBITMQ_DEFAULT_USER=jsm
+      - RABBITMQ_DEFAULT_PASS=jsm
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+  mongodb:
+    container_name: mongodb
+    image: mongo
+    volumes:
+      - /home/mongo/data:/data/db
+      - /home/mongo/backups:/backups
+    ports:
+      - "27017:27017"
+  cross:
+    container_name: cross
+    restart: on-failure
+    build: .
+    ports:
+      - "8080"
+    links:
+      - mongodb:crossdb
+      - redis:redis
+      - rabbitmq:rabbitmq
+  nginx:
+    build: ./VCross
+    container_name: nginx-vcross
+    links:
+        - cross:cross
+    ports:
+        - "80:80"

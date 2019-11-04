@@ -1,54 +1,45 @@
 {
-	"name": "textrade",
-	"version": "1.0.0",
-	"description": "",
-	"main": "server.js",
-	"scripts": {
-		"debug": "node --nolazy --inspect-brk=9229 server.js",
-		"test": "mocha --inspect-brk"
-	},
-	"dependencies": {
-		"@finelets/hyper-rest": "^2.1.2",
-		"bluebird": "^3.5.1",
-		"connect-mongo": "^2.0.1",
-		"cookie-parser": "^1.4.3",
-		"cors": "^2.8.4",
-		"dotenv": "^6.0.0",
-		"express-session": "^1.15.6",
-		"googleapis": "^32.0.0",
-		"mongodb": "^3.1.1",
-		"mongoose": "^5.2.2",
-		"moment": "^2.22.2",
-		"nedb-session-store": "^1.1.2",
-		"passport": "^0.4.0",
-		"passport-github2": "^0.1.11",
-		"passport-google-oauth": "^1.0.0",
-		"passport.socketio": "^3.7.0",
-		"socket.io": "^2.1.1",
-		"underscore": "^1.9.1",
-		"uuid-v4": "^0.1.0"
-	},
-	"devDependencies": {
-		"chai": "^4.1.2",
-		"chai-as-promised": "^7.1.1",
-		"chai-xml": "^0.3.2",
-		"eslint": "^5.0.0",
-		"eslint-config-standard": "^11.0.0",
-		"eslint-plugin-import": "^2.12.0",
-		"eslint-plugin-node": "^6.0.1",
-		"eslint-plugin-promise": "^3.8.0",
-		"eslint-plugin-standard": "^3.1.0",
-		"mocha": "^5.2.0",
-		"mocha-mongoose": "^1.2.0",
-		"mock-express-request": "^0.2.2",
-		"mock-express-response": "^0.2.2",
-		"node-xml-compare": "^0.1.0",
-		"proxyquire": "^2.0.1",
-		"should": "^13.2.1",
-		"sinon": "^6.0.0",
-		"sinon-chai": "^3.2.0",
-		"sinon-stub-promise": "^4.0.0",
-		"supertest": "^3.1.0"
-	},
-	"author": "clx"
+  "name": "cross",
+  "version": "1.0.8",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "debug": "node --nolazy --inspect-brk=8090 server.js",
+    "test": "./node_modules/.bin/mocha -t 9000 --reporter spec --exit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JSMetta/cross.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JSMetta/cross/issues"
+  },
+  "homepage": "https://github.com/JSMetta/cross#readme",
+  "dependencies": {
+    "@finelets/hyper-rest": "^2.1.10-cross-1.51",
+    "amqplib": "^0.5.3",
+    "cors": "^2.8.5",
+    "moment": "^2.24.0",
+    "rulebased-validator": "^1.0.2",
+    "underscore": "^1.9.1"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "chai-xml": "^0.3.2",
+    "chance": "^1.0.18",
+    "mocha": "^6.1.4",
+    "mocha-mongoose": "^1.2.0",
+    "mock-express-request": "^0.2.2",
+    "mock-express-response": "^0.2.2",
+    "node-xml-compare": "^0.1.0",
+    "proxyquire": "^2.1.0",
+    "should": "^13.2.3",
+    "sinon": "^7.3.2",
+    "sinon-chai": "^3.3.0",
+    "sinon-stub-promise": "^4.0.0",
+    "supertest": "^4.0.2"
+  }
 }
