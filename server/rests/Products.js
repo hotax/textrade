@@ -1,5 +1,6 @@
-const entity = require('../biz/Employee');
+const entity = require('../biz/Product');
 
+// TODO: 构建一个典型的搜索查询服务的handler
 const list = function (query) {
     let condi
     try {
@@ -18,11 +19,17 @@ const list = function (query) {
 };
 
 module.exports = {
-    url: '/textrade/api/auth/users',
-    rests: [
+    url: '/textrade/api/products',
+    rests: [{
+            type: 'create',
+            target: 'Product',
+            handler: (req) => {
+                return entity.create(req.body)
+            }
+        },
         {
             type: 'query',
-            element: 'User',
+            element: 'Product',
             handler: list
         }
     ]

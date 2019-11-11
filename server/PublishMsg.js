@@ -1,7 +1,7 @@
 logger = require('@finelets/hyper-rest/app/Logger')
 
 function publish(topic, msg){
-    let pub = require('./CrossMessageCenter')[topic]
+    let pub = require('./MessageCenter')[topic]
     if(pub) {
         logger.debug('Publish ' + topic + ' message:\r\n' + JSON.stringify(msg, null, 2))
         pub(msg)

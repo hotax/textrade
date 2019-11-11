@@ -7,10 +7,10 @@ const {
     update,
     remove,
     findById
-} = require('../biz/Employee');
+} = require('../biz/Customer');
 
 module.exports = {
-    url: '/textrade/api/users/:id',
+    url: '/textrade/api/customers/:id',
     rests: [{
             type: 'read',
             ifNoneMatch,

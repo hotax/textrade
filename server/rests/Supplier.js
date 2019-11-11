@@ -7,13 +7,10 @@ const {
     update,
     remove,
     findById
-} = require('../biz/bas/Suppliers');
+} = require('../biz/Supplier');
 
 module.exports = {
-    url: '/cross/api/bas/suppliers/:id',
-    transitions: {
-        Purchase: {id: 'context.supplier'}
-    },
+    url: '/textrade/api/suppliers/:id',
     rests: [{
             type: 'read',
             ifNoneMatch,

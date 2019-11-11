@@ -1,16 +1,10 @@
 /**
  * Created by clx on 2017/10/13.
  */
-const {
-    ifMatch,
-    ifNoneMatch,
-    update,
-    remove,
-    findById
-} = require('../biz/Employee');
+const {ifMatch, ifNoneMatch, update, remove, findById} = require('../biz/Product')
 
 module.exports = {
-    url: '/textrade/api/users/:id',
+    url: '/textrade/api/products/:id',
     rests: [{
             type: 'read',
             ifNoneMatch,

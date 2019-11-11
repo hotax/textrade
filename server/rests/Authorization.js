@@ -2,10 +2,10 @@
  * Created by clx on 2017/10/13.
  */
 const logger = require('@finelets/hyper-rest/app/Logger'),
-    users = require('../biz/bas/Employee')
+    users = require('../biz/Employee')
 
 module.exports = {
-    url: '/cross/api/auth/users/:id/roles',
+    url: '/textrade/api/auth/users/:id/roles',
     rests: [{
             type: 'http',
             method: 'put',

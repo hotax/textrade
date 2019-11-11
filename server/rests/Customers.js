@@ -1,4 +1,4 @@
-const entity = require('../biz/Employee');
+const entity = require('../biz/Customer');
 
 const list = function (query) {
     let condi
@@ -18,11 +18,17 @@ const list = function (query) {
 };
 
 module.exports = {
-    url: '/textrade/api/auth/users',
-    rests: [
+    url: '/textrade/api/customers',
+    rests: [{
+            type: 'create',
+            target: 'Customer',
+            handler: (req) => {
+                return entity.create(req.body)
+            }
+        },
         {
             type: 'query',
-            element: 'User',
+            element: 'Customer',
             handler: list
         }
     ]

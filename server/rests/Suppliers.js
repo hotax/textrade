@@ -1,4 +1,4 @@
-const entity = require('../biz/bas/Suppliers');
+const entity = require('../biz/Supplier');
 
 const list = function (query) {
     let condi
@@ -18,7 +18,7 @@ const list = function (query) {
 };
 
 module.exports = {
-    url: '/cross/api/bas/suppliers',
+    url: '/textrade/api/suppliers',
     rests: [{
             type: 'create',
             target: 'Supplier',

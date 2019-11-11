@@ -2,7 +2,7 @@
  * Created by clx on 2017/10/13.
  */
 const logger = require('@finelets/hyper-rest/app/Logger'),
-    {findById, update} = require('../biz/bas/Employee')
+    {findById, update} = require('../biz/Employee')
 
 const scopes = {
     info: (user, data) => {
@@ -17,7 +17,7 @@ const scopes = {
 // TODO: 增加一种同当前用户相关的rest服务
 // TODO: 需提供测试用例
 module.exports = {
-    url: '/cross/api/bas/currentUser',
+    url: '/textrade/api/currentUser',
     rests: [{
             type: 'http',
             method: 'put',

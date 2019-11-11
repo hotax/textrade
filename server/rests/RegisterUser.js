@@ -1,7 +1,7 @@
-const entity = require('../biz/bas/Employee');
+const entity = require('../biz/Employee');
 
 module.exports = {
-    url: '/cross/auth/users',
+    url: '/textrade/auth/users',
     rests: [{
             type: 'create',
             target: 'User',

@@ -1,7 +1,7 @@
 var dbSave = require('@finelets/hyper-rest/db/mongoDb/SaveObjectToDb');
 
 describe('权限管理', function () {
-	const Schema = require('../db/schema/bas/Employee'),
+	const Schema = require('../db/schema/Employee'),
 		id = '1223445666',
 		userId = 'foo',
 		name = 'foo name',
@@ -11,7 +11,7 @@ describe('权限管理', function () {
 		pic = 'user pic'
 
 	describe('用户', () => {
-		const entity = require('../server/biz/bas/Employee')
+		const entity = require('../server/biz/Employee')
 
 		beforeEach((done) => {
 			return clearDB(done);
@@ -42,22 +42,6 @@ describe('权限管理', function () {
 					expect(!doc.isAdmin).true
 					expect(!doc.roles).true
 				})
-		})
-
-		it('角色为空字符串时，roles为undefined', ()=>{
-			return dbSave(Schema, {
-				userId: 'foo',
-				name: 'foo',
-				roles: 'roles'
-			})
-			.then(doc => {
-				let data = doc.toJSON()
-				data.roles = ''
-				return entity.update(data)
-			})
-			.then(doc => {
-				expect(doc.roles).undefined
-			})
 		})
 
 		describe('认证', () => {
@@ -117,7 +101,8 @@ describe('权限管理', function () {
 							name,
 							pic,
 							isAdmin: true,
-							roles
+							roles,
+							userId
 						})
 					})
 			})
@@ -206,9 +191,9 @@ describe('权限管理', function () {
 		})
 	})
 
-	describe('CrossJwtConfig', () => {
-		const createAuthConfig = require('../server/CrossJwtConfig'),
-			DEFAULT_ADMIN_ID = '$$$$cross$$admin'
+	describe('JwtConfig', () => {
+		const createAuthConfig = require('../server/JwtConfig'),
+			DEFAULT_ADMIN_ID = '$$$$textrade$$admin'
 		let dbAuth
 
 		beforeEach(() => {
