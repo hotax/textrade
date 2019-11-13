@@ -1,5 +1,5 @@
 module.exports = {
-    url: '/textrade/api/index.html',
+    url: '/textrade/index.html',
     rests: [
         {
             type: 'entry'
