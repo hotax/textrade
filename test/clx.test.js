@@ -21,28 +21,14 @@ describe('TexTrade', function () {
 			});
 			
 			describe('Products - 产品', () => {
-				const name = 'name',
-				 desc = 'desc',
+				const desc = 'desc',
 				 content = 'content',
 				 constructure = 'constructure', 
-				 yarnUnit = 'yarnUnit',
-				 warp = [1, 2, 3],
-				 weft = [4, 5, 6],
-				 other = [7, 8, 9],
-				 yarn = {warp, weft, other}, 
-				 dnstyUnit = 'dnstyUnit',
-				 grey = {
-					dnsty: {warp, weft, other},
-					width: 20,
-					GSM: 50
-				 },
-				 product = {
-					dnstyBW: {warp, weft, other},
-					dnstyAW: {warp, weft, other},
-					width: 30,
-					GSM: 60 
-				 }, 
-				 author = '5ce79b99da5837277c3f3b66',
+				 yarn = 'yarn',
+				 spec = {width: '50cm', dnsty: '100x200', GSM: 65},
+				 grey = {width: '60cm', dnsty: '110x200', GSM: 75},
+				 creator = '5ce79b99da5837277c3f3b66',
+				 remark = 'remark',
 				 tags = 'tags',
 				 state = 'draft'
 				beforeEach(() => {
@@ -64,42 +50,40 @@ describe('TexTrade', function () {
 						.should.be.rejectedWith()
 				})
 
-				it('搜索字段包括code, name, desc, tags', () => {
+				it('搜索字段包括code, desc, content, constructure, yarn, tags, remark', () => {
 					let products = []
 					products.push(dbSave(schema, {code: 'foo'}))
-					products.push(dbSave(schema, {code: '01', name: 'foo'}))
+					products.push(dbSave(schema, {code: '01', constructure: 'foo'}))
 					products.push(dbSave(schema, {code: '02', desc: 'foo'}))
 					products.push(dbSave(schema, {code: '03', tags: 'foo'}))
 					products.push(dbSave(schema, {code: '04', content: 'foo'}))
+					products.push(dbSave(schema, {code: '05', yarn: 'foo'}))
+					products.push(dbSave(schema, {code: '06', remark: 'foo'}))
 					return Promise.all(products)
 						.then(() => {
 							return testTarget.search({}, 'oo')
 						})
 						.then(data => {
-							expect(data.length).eqls(4)
+							expect(data.length).eqls(7)
 						})
 				})
 
 				it('create', () => {
-					return testTarget.create({code, name, desc, content, constructure, tags, yarnUnit,
-						yarn, dnstyUnit, grey, product, author, state})
+					return testTarget.create({code, desc, content, constructure, 
+						yarn, spec, grey, tags, creator, remark, state})
 						.then(doc => {
 							expect(doc.code).eql(code)
-							expect(doc.name).eql(name)
 							expect(doc.desc).eql(desc)
 							expect(doc.content).eql(content)
 							expect(doc.constructure).eql(constructure)
-							expect(doc.tags).eql(tags)
-							expect(doc.yarnUnit).eql(yarnUnit)
-							delete doc.yarn.id
 							expect(doc.yarn).eql(yarn)
-							expect(doc.dnstyUnit).eql(dnstyUnit)
-							delete doc.grey.dnsty.id
+							delete doc.spec.id
+							expect(doc.spec).eql(spec)
+							delete doc.grey.id
 							expect(doc.grey).eql(grey)
-							delete doc.product.dnstyAW.id
-							delete doc.product.dnstyBW.id
-							expect(doc.product).eql(product)
-							expect(doc.author).eql(author)
+							expect(doc.tags).eql(tags)
+							expect(doc.creator).eql(creator)
+							expect(doc.remark).eql(remark)
 							expect(doc.state).eql(state)
 						})
 				})
@@ -109,26 +93,22 @@ describe('TexTrade', function () {
 						.then(doc => {
 							id = doc.id
 							__v = doc.__v
-							return testTarget.update({id, __v, code, name, desc, content, constructure, tags, yarnUnit,
-								yarn, dnstyUnit, grey, product, author, state})
+							return testTarget.update({id, __v, code, desc, content, constructure, 
+								yarn, spec, grey, tags, creator, remark, state})
 						})
 						.then(doc => {
 							expect(doc.code).eql(code)
-							expect(doc.name).eql(name)
 							expect(doc.desc).eql(desc)
 							expect(doc.content).eql(content)
 							expect(doc.constructure).eql(constructure)
-							expect(doc.tags).eql(tags)
-							expect(doc.yarnUnit).eql(yarnUnit)
-							delete doc.yarn.id
 							expect(doc.yarn).eql(yarn)
-							expect(doc.dnstyUnit).eql(dnstyUnit)
-							delete doc.grey.dnsty.id
+							delete doc.spec.id
+							expect(doc.spec).eql(spec)
+							delete doc.grey.id
 							expect(doc.grey).eql(grey)
-							delete doc.product.dnstyAW.id
-							delete doc.product.dnstyBW.id
-							expect(doc.product).eql(product)
-							expect(doc.author).eql(author)
+							expect(doc.tags).eql(tags)
+							expect(doc.creator).eql(creator)
+							expect(doc.remark).eql(remark)
 							expect(doc.state).undefined
 						})
 				})

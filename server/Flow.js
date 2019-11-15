@@ -1,6 +1,6 @@
 module.exports = {
     TexTrade: {
-        pruducts: 'Products',
+        products: 'Products',
         suppliers: 'Suppliers',
         customer: 'Customers',
         users: 'Users',

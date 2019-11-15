@@ -4,9 +4,9 @@ const schema = require('../../db/schema/Product'),
 
 const config = {
 	schema,
-    updatables: ['code', 'name', 'desc', 'content', 'constructure', 
-                'yarnUnit', 'yarn', 'dnstyUnit', 'grey', 'product', 'author', 'tags'],
-	searchables: ['code', 'name', 'desc', 'tags']
+    updatables: ['code', 'desc', 'content', 'constructure', 'yarn',
+                'spec', 'grey', 'creator', 'tags', 'remark'],
+	searchables: ['code', 'desc', 'content', 'constructure', 'yarn', 'remark', 'tags']
 }
 
 const addIn = {
