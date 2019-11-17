@@ -119,6 +119,7 @@ describe('TexTrade', function () {
 					address = 'address',
 					account = 'account',
 					link = 'link',
+					creator = '5ce79b99da5837277c3f3b66',
 					tags = 'tags',
 					contacts = [
 						{name: 'foo', phone: 'p1', email: 'email1'},
@@ -161,13 +162,14 @@ describe('TexTrade', function () {
 				})
 
 				it('create', () => {
-					return testTarget.create({code, name, address, account, link, tags, contacts})
+					return testTarget.create({code, name, address, account, link, creator, tags, contacts})
 						.then(doc => {
 							expect(doc.code).eql(code)
 							expect(doc.name).eql(name)
 							expect(doc.address).eql(address)
 							expect(doc.account).eql(account)
 							expect(doc.link).eql(link)
+							expect(doc.creator).eql(creator)
 							expect(doc.tags).eql(tags)
 							delete doc.contacts[0].id
 							delete doc.contacts[1].id
@@ -180,7 +182,7 @@ describe('TexTrade', function () {
 						.then(doc => {
 							id = doc.id
 							__v = doc.__v
-							return testTarget.update({id, __v, code, name, address, account, link, contacts, tags})
+							return testTarget.update({id, __v, code, name, address, account, link, creator, contacts, tags})
 						})
 						.then(doc => {
 							expect(doc.code).eql(code)
@@ -188,6 +190,7 @@ describe('TexTrade', function () {
 							expect(doc.address).eql(address)
 							expect(doc.account).eql(account)
 							expect(doc.link).eql(link)
+							expect(doc.creator).eql(creator)
 							expect(doc.tags).eql(tags)
 							delete doc.contacts[0].id
 							delete doc.contacts[1].id
@@ -202,6 +205,7 @@ describe('TexTrade', function () {
 				const name = 'name',
 					address = 'address',
 					link = 'link',
+					creator = '5ce79b99da5837277c3f3b66',
 					tags = 'tags',
 					contacts = [
 						{name: 'foo', phone: 'p1', email: 'email1'},
@@ -247,12 +251,13 @@ describe('TexTrade', function () {
 				})
 
 				it('create', () => {
-					return testTarget.create({code, name, address, link, tags, contacts})
+					return testTarget.create({code, name, address, link, creator, tags, contacts})
 						.then(doc => {
 							expect(doc.code).eql(code)
 							expect(doc.name).eql(name)
 							expect(doc.address).eql(address)
 							expect(doc.link).eql(link)
+							expect(doc.creator).eql(creator)
 							expect(doc.tags).eql(tags)
 							delete doc.contacts[0].id
 							delete doc.contacts[1].id
@@ -265,13 +270,14 @@ describe('TexTrade', function () {
 						.then(doc => {
 							id = doc.id
 							__v = doc.__v
-							return testTarget.update({id, __v, code, name, address, link, contacts, tags})
+							return testTarget.update({id, __v, code, name, address, link, creator, contacts, tags})
 						})
 						.then(doc => {
 							expect(doc.code).eql(code)
 							expect(doc.name).eql(name)
 							expect(doc.address).eql(address)
 							expect(doc.link).eql(link)
+							expect(doc.creator).eql(creator)
 							expect(doc.tags).eql(tags)
 							delete doc.contacts[0].id
 							delete doc.contacts[1].id

@@ -14,6 +14,7 @@ module.exports = {
     rests: [{
             type: 'read',
             ifNoneMatch,
+            dataRef: {User: 'creator'},
             handler: findById
         },
         {

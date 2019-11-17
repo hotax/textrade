@@ -2,7 +2,7 @@ module.exports = {
     TexTrade: {
         products: 'Products',
         suppliers: 'Suppliers',
-        customer: 'Customers',
+        customers: 'Customers',
         users: 'Users',
         register: 'RegisterUser',
         currentUser: 'CurrentUser',

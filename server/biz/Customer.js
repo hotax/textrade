@@ -3,7 +3,7 @@ const schema = require('../../db/schema/Customer'),
 
 const config = {
 	schema,
-    updatables: ['code', 'name', 'address', 'link', 'contacts', 'tags'],
+    updatables: ['code', 'name', 'address', 'link', 'creator', 'contacts', 'tags'],
 	searchables: ['code', 'name', 'address', 'tags']
 }
 

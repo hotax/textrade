@@ -11,6 +11,11 @@ const {
 
 module.exports = {
     url: '/textrade/api/users/:id',
+    transitions: {
+        Product: {id: 'context.creator'},
+        Customer: {id: 'context.creator'},
+        Supplier: {id: 'context.creator'}
+    },
     rests: [{
             type: 'read',
             ifNoneMatch,
