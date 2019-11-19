@@ -21,6 +21,7 @@ services:
       - /home/mongo/backups:/backups
     ports:
       - "28515:28515"
+    command: mongod --port 28515
   textrade:
     container_name: textrade
     restart: on-failure
