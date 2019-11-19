@@ -1,4 +1,4 @@
-version: "2"
+version: "3"
 services:
   redis:
     container_name: redis
@@ -8,8 +8,8 @@ services:
   rabbitmq:
     image: "rabbitmq:management"
     environment:
-      - RABBITMQ_DEFAULT_USER=jsm
-      - RABBITMQ_DEFAULT_PASS=jsm
+      - RABBITMQ_DEFAULT_USER=hotex
+      - RABBITMQ_DEFAULT_PASS=hotex
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -20,21 +20,21 @@ services:
       - /home/mongo/data:/data/db
       - /home/mongo/backups:/backups
     ports:
-      - "27017:27017"
-  cross:
-    container_name: cross
+      - "28515:28515"
+  textrade:
+    container_name: textrade
     restart: on-failure
-    build: .
+    build: ./server
     ports:
       - "8080"
     links:
-      - mongodb:crossdb
+      - mongodb:hotexdb
       - redis:redis
       - rabbitmq:rabbitmq
   nginx:
-    build: ./VCross
-    container_name: nginx-vcross
+    build: ./client
+    container_name: nginx-vtextrade
     links:
-        - cross:cross
+        - textrade:textrade
     ports:
         - "80:80"
