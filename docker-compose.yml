@@ -24,7 +24,7 @@ services:
   textrade:
     container_name: textrade
     restart: on-failure
-    build: ./textrade
+    build: .
     ports:
       - "8080"
     links:
@@ -32,7 +32,7 @@ services:
       - redis:redis
       - rabbitmq:rabbitmq
   nginx:
-    build: ./VTextrade
+    build: ../VTextrade
     container_name: nginx-vtextrade
     links:
         - textrade:textrade
