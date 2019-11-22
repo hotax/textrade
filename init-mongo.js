@@ -3,7 +3,7 @@ db.createUser(
         user: "textrade",
         pwd: "690102",
         roles: [
-            {role: "root", db: "admin"}
+            {role: "root", db: "TexTrade"}
         ]
     }
 )
