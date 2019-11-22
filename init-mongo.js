@@ -1,6 +1,9 @@
 db.createUser(
     {
         user: "textrade",
-        pwd: "980425"
+        pwd: "690102",
+        roles: [
+            {role: "root", db: "admin"}
+        ]
     }
 )
