@@ -17,13 +17,14 @@ services:
     container_name: mongodb
     image: mongo
     environment:
+      - MONGO_INITDB_DATABASE=TexTrade
       - MONGO_INITDB_ROOT_USERNAME=textrade
       - MONGO_INITDB_ROOT_PASSWORD=690102
     volumes:
       - /home/mongo/data:/data/db
       - /home/mongo/backups:/backups
     ports:
-      - "28515:28515"
+      - 27017:27017
   textrade:
     container_name: textrade
     restart: on-failure
