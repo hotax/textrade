@@ -10,7 +10,7 @@ WORKDIR /src
 ADD . /src
 
 ENV PORT 8080
-ENV MONGODB=mongodb://hotex:690102@localhost:28515/TexTrade?authSource=admin
+ENV MONGODB=mongodb://hotex:690102@hotexdb:28515/TexTrade?authSource=admin
 ENV CLIENT_ORIGIN=http://47.96.122.87/hotex
 ENV MQ=amqp://hotex:hotex@rabbitmq
 ENV JWT_SECRET=MFswDQYJKoZIhvcNAQEBBQADSgAwRwJAamUL/pm3t5EZ
