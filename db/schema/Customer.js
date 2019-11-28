@@ -1,7 +1,8 @@
 const mongoose = require('mongoose'),
     ObjectId = mongoose.Schema.Types.ObjectId,
     createCollection = require('@finelets/hyper-rest/db/mongoDb/CreateCollection'),
-    contactSchema = require('./Contact')
+    contactSchema = require('./Contact'),
+    quotSchema = require('./Quot')
 
 const dbModel = createCollection({
     name: 'Customer',
@@ -12,7 +13,8 @@ const dbModel = createCollection({
         link: String,
         creator: ObjectId,
         tags: String,
-        contacts: [contactSchema]
+        contacts: [contactSchema],
+        quots: [quotSchema]
     }
 })
 

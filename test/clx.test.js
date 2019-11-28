@@ -648,6 +648,90 @@ describe('TexTrade', function () {
 
 				})
 			})
+
+			describe('Quots - 报价', () => {
+				const requirement = 'customer requirment'
+				let customer, quot
+
+				beforeEach(() => {
+					toCreate = {code}
+					schema = require('../db/schema/Customer');
+					testTarget = proxyquire('../server/biz/Customer', stubs);
+					return dbSave(schema, toCreate)
+						.then(doc => {
+							customer = doc.id
+						})
+				})
+
+				it('Customer is invalid ObjectId', () => {
+					return testTarget.quot({customer: 'abc'})
+						.should.be.rejectedWith()
+				})
+
+				it('Customer is not found', () => {
+					return testTarget.quot({customer: ID_NOT_EXIST})
+						.should.be.rejectedWith()
+				})
+
+				it('the simplest quot', () => {
+					return testTarget.quot({customer, requirement})
+						.then(doc => {
+							quot = doc
+							expect(quot.customer).eql(customer)
+							expect(quot.requirement).eql(requirement)
+							expect(quot.date).exist
+							return schema.findById(customer)
+						})
+						.then(doc => {
+							doc = doc.toJSON()
+							expect(quot.id).eql(doc.quots[0].id)
+							expect(quot.customer).eql(doc.id)
+							expect(quot.requirement).eql(doc.quots[0].requirement)
+							expect(quot.date).eql(doc.quots[0].date)
+						})
+				})
+
+				it('the full quot', () => {
+					const date = new Date(),
+					creator = '5de79b77da3537277c3f3b88',
+					product = '67879b77da3537277c3f3b88',
+					supplier = '77879b77da3537277c3f3b99',
+					price = 23.45,
+					remark = 'any remark'
+					return testTarget.quot(
+											{
+												customer,
+												date,
+												requirement,
+												items: [
+													{product, supplier, date, price, remark},
+													{product, supplier, date, price, remark}
+												],
+												creator
+											}
+										)
+						.then(doc => {
+							quot = doc
+							expect(quot.customer).eql(customer)
+							expect(quot.requirement).eql(requirement)
+							expect(quot.date).eql(date.toJSON())
+							expect(quot.creator).eql(creator)
+							expect(quot.items[0]).eql({id: quot.items[0].id, product, supplier, date: date.toJSON(), price, remark})
+							expect(quot.items[1]).eql({id: quot.items[1].id, product, supplier, date: date.toJSON(), price, remark})
+							return schema.findById(customer)
+						})
+						.then(doc => {
+							doc = doc.toJSON()
+							expect(quot.id).eql(doc.quots[0].id)
+							expect(customer).eql(doc.id)
+							expect(requirement).eql(doc.quots[0].requirement)
+							expect(date.toJSON()).eql(doc.quots[0].date)
+							expect(creator).eql(doc.quots[0].creator)
+							expect(doc.quots[0].items[0]).eql({id: doc.quots[0].items[0].id, product, supplier, date: date.toJSON(), price, remark})
+							expect(doc.quots[0].items[1]).eql({id: doc.quots[0].items[1].id, product, supplier, date: date.toJSON(), price, remark})
+						})
+				})
+			})
 		})
 	})
 })

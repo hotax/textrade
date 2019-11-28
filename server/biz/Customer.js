@@ -8,6 +8,23 @@ const config = {
 }
 
 const addIn = {
+	quot: quot => {
+		let row
+		return schema.findById(quot.customer)
+		.then(doc => {
+			if(!doc) return Promise.reject()
+			if(!quot.date) quot.date = new Date()
+			row = doc.quots.push(quot)
+			return doc.save()
+		})
+		.then(data => {
+			if(data) {
+				data = data.toJSON()
+				const doc = {...data.quots[row - 1], customer: data.id}
+				return doc
+			} 
+		})
+	}
 }
 
 module.exports = createEntity(config, addIn)
