@@ -18,7 +18,7 @@ describe('TexTrade', function () {
 			beforeEach(function (done) {
 				__v = 0
 				return clearDB(done);
-			});
+			})
 			
 			describe('Products - 产品', () => {
 				const desc = 'desc',
@@ -270,7 +270,7 @@ describe('TexTrade', function () {
 						.then(doc => {
 							id = doc.id
 							__v = doc.__v
-							return testTarget.update({id, __v, code, name, address, link, creator, contacts, tags})
+							return testTarget.update({id, __v, code, name, address, link, creator, tags})
 						})
 						.then(doc => {
 							expect(doc.code).eql(code)
@@ -279,9 +279,6 @@ describe('TexTrade', function () {
 							expect(doc.link).eql(link)
 							expect(doc.creator).eql(creator)
 							expect(doc.tags).eql(tags)
-							delete doc.contacts[0].id
-							delete doc.contacts[1].id
-							expect(doc.contacts).eql(contacts)
 						})
 				})
 
@@ -651,86 +648,225 @@ describe('TexTrade', function () {
 
 			describe('Quots - 报价', () => {
 				const requirement = 'customer requirment'
-				let customer, quot
+				let customer
 
 				beforeEach(() => {
 					toCreate = {code}
-					schema = require('../db/schema/Customer');
-					testTarget = proxyquire('../server/biz/Customer', stubs);
+					schema = require('../db/schema/Customer')
+					testTarget = proxyquire('../server/biz/Customer', stubs)
 					return dbSave(schema, toCreate)
 						.then(doc => {
 							customer = doc.id
 						})
 				})
 
-				it('Customer is invalid ObjectId', () => {
-					return testTarget.quot({customer: 'abc'})
-						.should.be.rejectedWith()
+				describe('报价', () => {
+					let quot
+
+					it('Customer is invalid ObjectId', () => {
+						return testTarget.quot({customer: 'abc'})
+							.should.be.rejectedWith()
+					})
+	
+					it('Customer is not found', () => {
+						return testTarget.quot({customer: ID_NOT_EXIST})
+							.should.be.rejectedWith()
+					})
+	
+					it('create a simplest quot', () => {
+						return testTarget.quot({customer, requirement})
+							.then(doc => {
+								quot = doc
+								expect(quot.customer).eql(customer)
+								expect(quot.requirement).eql(requirement)
+								expect(quot.date).exist
+								return schema.findById(customer)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(quot.id).eql(doc.quots[0].id)
+								expect(quot.customer).eql(doc.id)
+								expect(quot.requirement).eql(doc.quots[0].requirement)
+								expect(quot.date).eql(doc.quots[0].date)
+							})
+					})
+	
+					it('create a full data quot', () => {
+						const date = new Date(),
+						creator = '5de79b77da3537277c3f3b88',
+						product = '67879b77da3537277c3f3b88',
+						supplier = '77879b77da3537277c3f3b99',
+						price = 23.45,
+						remark = 'any remark'
+						return testTarget.quot(
+												{
+													customer,
+													date,
+													requirement,
+													items: [
+														{product, supplier, date, price, remark},
+														{product, supplier, date, price, remark}
+													],
+													creator
+												}
+											)
+							.then(doc => {
+								quot = doc
+								expect(quot.customer).eql(customer)
+								expect(quot.requirement).eql(requirement)
+								expect(quot.date).eql(date.toJSON())
+								expect(quot.creator).eql(creator)
+								expect(quot.items[0]).eql({id: quot.items[0].id, product, supplier, date: date.toJSON(), price, remark})
+								expect(quot.items[1]).eql({id: quot.items[1].id, product, supplier, date: date.toJSON(), price, remark})
+								return schema.findById(customer)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(quot.id).eql(doc.quots[0].id)
+								expect(customer).eql(doc.id)
+								expect(requirement).eql(doc.quots[0].requirement)
+								expect(date.toJSON()).eql(doc.quots[0].date)
+								expect(creator).eql(doc.quots[0].creator)
+								expect(doc.quots[0].items[0]).eql({id: doc.quots[0].items[0].id, product, supplier, date: date.toJSON(), price, remark})
+								expect(doc.quots[0].items[1]).eql({id: doc.quots[0].items[1].id, product, supplier, date: date.toJSON(), price, remark})
+							})
+					})
 				})
 
-				it('Customer is not found', () => {
-					return testTarget.quot({customer: ID_NOT_EXIST})
-						.should.be.rejectedWith()
-				})
-
-				it('the simplest quot', () => {
-					return testTarget.quot({customer, requirement})
-						.then(doc => {
-							quot = doc
-							expect(quot.customer).eql(customer)
-							expect(quot.requirement).eql(requirement)
-							expect(quot.date).exist
-							return schema.findById(customer)
-						})
-						.then(doc => {
-							doc = doc.toJSON()
-							expect(quot.id).eql(doc.quots[0].id)
-							expect(quot.customer).eql(doc.id)
-							expect(quot.requirement).eql(doc.quots[0].requirement)
-							expect(quot.date).eql(doc.quots[0].date)
-						})
-				})
-
-				it('the full quot', () => {
+				describe('查询报价', () => {
 					const date = new Date(),
 					creator = '5de79b77da3537277c3f3b88',
 					product = '67879b77da3537277c3f3b88',
 					supplier = '77879b77da3537277c3f3b99',
 					price = 23.45,
 					remark = 'any remark'
-					return testTarget.quot(
+
+					let custDoc
+					beforeEach(() => {
+						return schema.findById(customer)
+							.then(doc => {
+								doc.quots.push({
+									date,
+									requirement,
+									creator
+								})
+								doc.quots.push({
+									date,
+									requirement,
+									items: [
+										{product, supplier, date, price, remark},
+										{product, supplier, date, price, remark}
+									],
+									creator
+								})
+								return doc.save()
+							})
+							.then(doc => {
+								custDoc = doc.toJSON()
+							})
+					})
+
+					it('查询时发生任何错误时返回空数据集', () => {
+						return testTarget.searchQuots({customer: 'abc', type: testTarget.constDef.QUERY_TYPE_CUST_QUOTS})
+							.then(docs => {
+								expect(docs.length).eql(0)
+							})
+					})
+
+					it('查询客户需求及相关产品供应商报价', () => {
+						return testTarget.listSubs(customer, 'quots')
+							.then(docs => {
+								expect(docs.length).eql(2)
+								expect(docs[0]).eql({
+									id: custDoc.quots[0].id,
+									date: date.toJSON(),
+									requirement,
+									creator,
+									items: []
+								})
+								expect(docs[1]).eql({
+									id: custDoc.quots[1].id,
+									date: date.toJSON(),
+									requirement,
+									creator,
+									items: [
+										{
+											id: custDoc.quots[1].items[0].id,
+											date: date.toJSON(),
+											product, supplier, price, remark
+										},
+										{
+											id: custDoc.quots[1].items[1].id,
+											date: date.toJSON(),
+											product, supplier, price, remark
+										}
+									]
+								})
+							})
+					})
+
+					it('查询供应商产品报价', () => {
+						return testTarget.searchQuots({supplier, type: testTarget.constDef.QUERY_TYPE_SUPPLIER_QUOTS})
+							.then(docs => {
+								expect( docs.length).eql(1)
+								expect(docs[0]).eql({
+									product,
+									customers: [{
+										customer: custDoc.id,
+										quots: [
 											{
-												customer,
-												date,
-												requirement,
-												items: [
-													{product, supplier, date, price, remark},
-													{product, supplier, date, price, remark}
-												],
-												creator
+												id: custDoc.quots[1].items[0].id,
+												date: date.toJSON(),
+												price, remark,
+												quot: custDoc.quots[1].id
+											},
+											{
+												id: custDoc.quots[1].items[1].id,
+												date: date.toJSON(),
+												price, remark,
+												quot: custDoc.quots[1].id
 											}
-										)
-						.then(doc => {
-							quot = doc
-							expect(quot.customer).eql(customer)
-							expect(quot.requirement).eql(requirement)
-							expect(quot.date).eql(date.toJSON())
-							expect(quot.creator).eql(creator)
-							expect(quot.items[0]).eql({id: quot.items[0].id, product, supplier, date: date.toJSON(), price, remark})
-							expect(quot.items[1]).eql({id: quot.items[1].id, product, supplier, date: date.toJSON(), price, remark})
-							return schema.findById(customer)
-						})
-						.then(doc => {
-							doc = doc.toJSON()
-							expect(quot.id).eql(doc.quots[0].id)
-							expect(customer).eql(doc.id)
-							expect(requirement).eql(doc.quots[0].requirement)
-							expect(date.toJSON()).eql(doc.quots[0].date)
-							expect(creator).eql(doc.quots[0].creator)
-							expect(doc.quots[0].items[0]).eql({id: doc.quots[0].items[0].id, product, supplier, date: date.toJSON(), price, remark})
-							expect(doc.quots[0].items[1]).eql({id: doc.quots[0].items[1].id, product, supplier, date: date.toJSON(), price, remark})
-						})
+										]
+									}]})
+							})
+					})
+
+					it('查询产品客户供应商报价', () => {
+						return testTarget.searchQuots({product, type: testTarget.constDef.QUERY_TYPE_PRODUCT_QUOTS})
+							.then(docs => {
+								expect( docs.length).eql(1)
+								expect(docs[0]).eql({
+									supplier, customer,
+									quots: [
+										{
+											id: custDoc.quots[1].id,
+											requirement,
+											date: date.toJSON(),
+											creator,
+											quot: {
+													id: custDoc.quots[1].items[0].id,
+													date: date.toJSON(),
+													price, remark
+												}
+										}
+									]
+								})
+							})
+					})
+
+					it('findQuotById', ()=>{
+						return testTarget.findQuotById(customer, custDoc.quots[1].id)
+							.then(doc => {
+								expect(doc).eql({
+									customer: custDoc.id,
+									...custDoc.quots[1],
+									__v: custDoc.__v,
+									updatedAt: custDoc.updatedAt
+								})
+							})
+					})
 				})
+
 			})
 		})
 	})
