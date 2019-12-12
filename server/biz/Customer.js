@@ -4,10 +4,8 @@ const schema = require('../../db/schema/Customer'),
 
 const config = {
 	schema,
-	projection: {
-		contacts: 0,
-		quots: 0
-	},
+	projection: ['-contacts', '-quots'],
+	listable: ['-contacts', '-quots', '-__v'],
 	updatables: ['code', 'name', 'address', 'link', 'creator', 'tags'],
 	searchables: ['code', 'name', 'address', 'tags']
 }
@@ -120,26 +118,6 @@ const addIn = {
 		QUERY_TYPE_SUPPLIER_QUOTS,
 		QUERY_TYPE_PRODUCT_QUOTS
 	},
-	quot: quot => {
-		let row
-		return schema.findById(quot.customer)
-			.then(doc => {
-				if (!doc) return Promise.reject()
-				if (!quot.date) quot.date = new Date()
-				row = doc.quots.push(quot)
-				return doc.save()
-			})
-			.then(data => {
-				if (data) {
-					data = data.toJSON()
-					const doc = {
-						...data.quots[row - 1],
-						customer: data.id
-					}
-					return doc
-				}
-			})
-	},
 
 	searchQuots: (cond, text) => {
 		const search = searchQuotsMap[cond.type]
@@ -147,17 +125,6 @@ const addIn = {
 		return search(cond, text)
 			.catch(e => {
 				return []
-			})
-	},
-
-	findQuotById: (customer, id) => {
-		return schema.findById(customer)
-			.then(doc => {
-				if(!doc) return
-				let quot = doc.quots.id(id)
-				if(!quot) return
-				quot = quot.toJSON()
-				return {customer: doc.id, ...quot, __v: doc.__v, updatedAt: doc.updatedAt.toJSON()}
 			})
 	}
 }

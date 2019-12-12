@@ -12,11 +12,15 @@ const list = function (query) {
 
 module.exports = {
     url: '/textrade/api/customers/:customer/quots',
+    transitions: {
+        Customer: {customer: 'params.id'},
+        CustomerQuot: {customer: 'params.id'}
+    },
     rests: [{
             type: 'create',
             target: 'CustomerQuot',
             handler: (req) => {
-                return entity.quot({customer: req.params['customer'], ...req.body})
+                return entity.createSubDoc(req.params['customer'], 'quots', req.body)
             }
         },
         {

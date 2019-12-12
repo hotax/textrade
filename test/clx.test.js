@@ -853,18 +853,6 @@ describe('TexTrade', function () {
 								})
 							})
 					})
-
-					it('findQuotById', ()=>{
-						return testTarget.findQuotById(customer, custDoc.quots[1].id)
-							.then(doc => {
-								expect(doc).eql({
-									customer: custDoc.id,
-									...custDoc.quots[1],
-									__v: custDoc.__v,
-									updatedAt: custDoc.updatedAt
-								})
-							})
-					})
 				})
 
 			})

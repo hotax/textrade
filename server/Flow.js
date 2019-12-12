@@ -21,7 +21,16 @@ module.exports = {
     },
     Customer: {
         self: "Customer",
-        collection: "Customers"
+        collection: "Customers",
+        quots: 'CustomerQuots'
+    },
+    CustomerQuots: {
+        add: 'CustomerQuots',
+        home: 'TexTrade'
+    },
+    CustomerQuot: {
+        self: "CustomerQuot",
+        collection: "CustomerQuots"
     },
     Products: {
         add: 'Products',
