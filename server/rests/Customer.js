@@ -12,7 +12,7 @@ const {
 module.exports = {
     url: '/textrade/api/customers/:id',
     transitions: {
-        CustomerQuot: {id: 'context.Customer'}
+        CustomerQuot: {id: 'context'}
     },
     rests: [{
             type: 'read',
