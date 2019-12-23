@@ -805,6 +805,31 @@ describe('TexTrade', function () {
 							})
 					})
 
+					/* it('查询供应商产品报价-CustomerQuot形式返回', () => {
+						return testTarget.searchQuots({supplier, type: testTarget.constDef.QUERY_TYPE_SUPPLIER_QUOTS})
+							.then(docs => {
+								expect(docs).eql([
+									{
+										customer: custDoc.id,
+										id: custDoc.quots[1].id,
+										requirement,
+										date: data.toJSON(),
+										creator,
+										items: [{
+											id: custDoc.quots[1].items[0].id,
+											date: date.toJSON(),
+											product, price, remark
+										},
+										{
+											id: custDoc.quots[1].items[1].id,
+											date: date.toJSON(),
+											product, price, remark
+										}]
+									}
+								])
+							})
+					}) */
+
 					it('查询供应商产品报价', () => {
 						return testTarget.searchQuots({supplier, type: testTarget.constDef.QUERY_TYPE_SUPPLIER_QUOTS})
 							.then(docs => {

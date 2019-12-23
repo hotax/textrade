@@ -6,7 +6,8 @@ const {ifMatch, ifNoneMatch, update, remove, findById} = require('../biz/Product
 module.exports = {
     url: '/textrade/api/products/:id',
     transitions: {
-        CustomerQuot: {id: 'context'}
+        CustomerQuot: {id: 'context'},
+        ProductQuots: {id: 'params.product'}
     },
     rests: [{
             type: 'read',

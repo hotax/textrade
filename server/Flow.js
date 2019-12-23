@@ -38,7 +38,11 @@ module.exports = {
     },
     Product: {
         self: "Product",
-        collection: "Products"
+        collection: "Products",
+        quots: 'ProductQuots'
+    },
+    ProductQuots: {
+        product: "Product"
     },
     Users: {
         add: 'RegisterUser',
