@@ -11,10 +11,15 @@ const config = {
 }
 
 const QUERY_TYPE_SUPPLIER_QUOTS = 'supplierQuots',
-	QUERY_TYPE_PRODUCT_QUOTS = 'productQuots'
+	QUERY_TYPE_PRODUCT_QUOTS = 'productQuots',
+	QUERY_TYPE_CUSTOMER_QUOTS = 'customerQuots'
+
 
 const searchQuotsMap = {
-	productQuots: (cond => {
+	customerQuots: ((cond, text) => {
+		return entity.listSubs(cond.customer, 'quots')
+	}),
+	productQuots: ((cond, text) => {
 		const quots = []
 		return schema.find({
 				"quots.items.product": cond.product
@@ -64,7 +69,7 @@ const searchQuotsMap = {
 				return quots
 			})
 	}),
-	supplierQuots: (cond => {
+	supplierQuots: ((cond, text) => {
 		const quots = []
 		return schema.find({
 				"quots.items.supplier": cond.supplier
@@ -116,18 +121,26 @@ const searchQuotsMap = {
 const addIn = {
 	constDef: {
 		QUERY_TYPE_SUPPLIER_QUOTS,
-		QUERY_TYPE_PRODUCT_QUOTS
+		QUERY_TYPE_PRODUCT_QUOTS,
+		QUERY_TYPE_CUSTOMER_QUOTS
 	},
 
 	searchQuots: (cond, text) => {
-		const search = searchQuotsMap[cond.type]
-		if (!search) return Promise.resolve([])
+		cond.type = cond.type || QUERY_TYPE_CUSTOMER_QUOTS 
+		let search = searchQuotsMap[cond.type]
+		if(!search) search = () => { return Promise.reject()}
 		return search(cond, text)
 			.catch(e => {
 				return []
 			})
+	},
+
+	quot: (data) => {
+		if (!data.date) data.date = new Date()
+		return entity.createSubDoc(data.customer, 'quots', data)
 	}
 }
 
+const entity = createEntity(config, addIn)
 
-module.exports = createEntity(config, addIn)
+module.exports = entity

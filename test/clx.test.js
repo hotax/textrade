@@ -653,7 +653,7 @@ describe('TexTrade', function () {
 				beforeEach(() => {
 					toCreate = {code}
 					schema = require('../db/schema/Customer')
-					testTarget = proxyquire('../server/biz/Customer', stubs)
+					testTarget = require('../server/biz/Customer')
 					return dbSave(schema, toCreate)
 						.then(doc => {
 							customer = doc.id
@@ -670,14 +670,16 @@ describe('TexTrade', function () {
 	
 					it('Customer is not found', () => {
 						return testTarget.quot({customer: ID_NOT_EXIST})
-							.should.be.rejectedWith()
+							.then(doc => {
+								expect(doc).not.exist
+							})
 					})
 	
 					it('create a simplest quot', () => {
 						return testTarget.quot({customer, requirement})
 							.then(doc => {
 								quot = doc
-								expect(quot.customer).eql(customer)
+								expect(quot.Customer).eql(customer)
 								expect(quot.requirement).eql(requirement)
 								expect(quot.date).exist
 								return schema.findById(customer)
@@ -685,7 +687,6 @@ describe('TexTrade', function () {
 							.then(doc => {
 								doc = doc.toJSON()
 								expect(quot.id).eql(doc.quots[0].id)
-								expect(quot.customer).eql(doc.id)
 								expect(quot.requirement).eql(doc.quots[0].requirement)
 								expect(quot.date).eql(doc.quots[0].date)
 							})
@@ -712,7 +713,6 @@ describe('TexTrade', function () {
 											)
 							.then(doc => {
 								quot = doc
-								expect(quot.customer).eql(customer)
 								expect(quot.requirement).eql(requirement)
 								expect(quot.date).eql(date.toJSON())
 								expect(quot.creator).eql(creator)
@@ -766,15 +766,22 @@ describe('TexTrade', function () {
 							})
 					})
 
+					it('非法查询类型', () => {
+						return testTarget.searchQuots({customer, type: 'unknown'})
+							.then(docs => {
+								expect(docs.length).eql(0)
+							})
+					})
+
 					it('查询时发生任何错误时返回空数据集', () => {
-						return testTarget.searchQuots({customer: 'abc', type: testTarget.constDef.QUERY_TYPE_CUST_QUOTS})
+						return testTarget.searchQuots({customer: 'abc'})
 							.then(docs => {
 								expect(docs.length).eql(0)
 							})
 					})
 
 					it('查询客户需求及相关产品供应商报价', () => {
-						return testTarget.listSubs(customer, 'quots')
+						return testTarget.searchQuots({customer})
 							.then(docs => {
 								expect(docs.length).eql(2)
 								expect(docs[0]).eql({
