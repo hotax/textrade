@@ -1,24 +1,19 @@
 /**
  * Created by clx on 2017/10/13.
  */
-const {
-    ifMatch,
-    ifNoneMatch,
-    update,
-    remove,
-    findById
-} = require('../biz/Supplier');
+const {ifMatch, ifNoneMatch, update, remove, findById} = require('../biz/ProductSupplier')
 
 module.exports = {
-    url: '/textrade/api/suppliers/:id',
+    url: '/textrade/api/products/:product/suppliers/:id',
     transitions: {
-        ProductSupplier: {id: 'context'}
     },
     rests: [{
             type: 'read',
             ifNoneMatch,
-            dataRef: {User: 'creator'},
-            handler: findById
+            dataRef: {Product: 'product', Supplier: 'supplier'},
+            handler: (id, {product}) => {
+                return findById(product, id)
+            }
         },
         {
             type: 'update',

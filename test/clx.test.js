@@ -20,97 +20,424 @@ describe('TexTrade', function () {
 				return clearDB(done);
 			})
 			
-			describe('Products - 产品', () => {
-				const desc = 'desc',
-				 content = 'content',
-				 constructure = 'constructure', 
-				 yarn = 'yarn',
-				 spec = {width: '50cm', dnsty: '100x200', GSM: 65},
-				 grey = {width: '60cm', dnsty: '110x200', GSM: 75},
-				 creator = '5ce79b99da5837277c3f3b66',
-				 remark = 'remark',
-				 tags = 'tags',
-				 state = 'draft'
+			describe('Products', () => {
+				let product
+
 				beforeEach(() => {
 					toCreate = {code}
 					schema = require('../db/schema/Product');
-					testTarget = proxyquire('../server/biz/Product', stubs);
 				})
 
-				it('code is required', () => {
-					return testTarget.create({})
-						.should.be.rejectedWith()
+				describe('产品', () => {
+					const desc = 'desc',
+						content = 'content',
+						constructure = 'constructure', 
+						yarn = 'yarn',
+						spec = {width: '50cm', dnsty: '100x200', GSM: 65},
+						grey = {width: '60cm', dnsty: '110x200', GSM: 75},
+						creator = '5ce79b99da5837277c3f3b66',
+						remark = 'remark',
+						tags = 'tags',
+						state = 'draft'
+
+					beforeEach(() => {
+						testTarget = require('../server/biz/Product')
+					})
+	
+					it('code is required', () => {
+						return testTarget.create({})
+							.should.be.rejectedWith()
+					})
+	
+					it('code must be unique', () => {
+						return dbSave(schema, toCreate)
+							.then(() => {
+								return testTarget.create(toCreate)
+							})
+							.should.be.rejectedWith()
+					})
+	
+					it('搜索字段包括code, desc, content, constructure, yarn, tags, remark', () => {
+						let products = []
+						products.push(dbSave(schema, {code: 'foo'}))
+						products.push(dbSave(schema, {code: '01', constructure: 'foo'}))
+						products.push(dbSave(schema, {code: '02', desc: 'foo'}))
+						products.push(dbSave(schema, {code: '03', tags: 'foo'}))
+						products.push(dbSave(schema, {code: '04', content: 'foo'}))
+						products.push(dbSave(schema, {code: '05', yarn: 'foo'}))
+						products.push(dbSave(schema, {code: '06', remark: 'foo'}))
+						return Promise.all(products)
+							.then(() => {
+								return testTarget.search({}, 'oo')
+							})
+							.then(data => {
+								expect(data.length).eqls(7)
+							})
+					})
+	
+					it('create', () => {
+						return testTarget.create({code, desc, content, constructure, 
+							yarn, spec, grey, tags, creator, remark, state})
+							.then(doc => {
+								expect(doc.code).eql(code)
+								expect(doc.desc).eql(desc)
+								expect(doc.content).eql(content)
+								expect(doc.constructure).eql(constructure)
+								expect(doc.yarn).eql(yarn)
+								delete doc.spec.id
+								expect(doc.spec).eql(spec)
+								delete doc.grey.id
+								expect(doc.grey).eql(grey)
+								expect(doc.tags).eql(tags)
+								expect(doc.creator).eql(creator)
+								expect(doc.remark).eql(remark)
+								expect(doc.state).eql(state)
+							})
+					})
+	
+					it('all fields except "state" field are updateable', () => {				
+						return dbSave(schema, {code: 'the code'})
+							.then(doc => {
+								id = doc.id
+								__v = doc.__v
+								return testTarget.update({id, __v, code, desc, content, constructure, 
+									yarn, spec, grey, tags, creator, remark, state})
+							})
+							.then(doc => {
+								expect(doc.code).eql(code)
+								expect(doc.desc).eql(desc)
+								expect(doc.content).eql(content)
+								expect(doc.constructure).eql(constructure)
+								expect(doc.yarn).eql(yarn)
+								delete doc.spec.id
+								expect(doc.spec).eql(spec)
+								delete doc.grey.id
+								expect(doc.grey).eql(grey)
+								expect(doc.tags).eql(tags)
+								expect(doc.creator).eql(creator)
+								expect(doc.remark).eql(remark)
+								expect(doc.state).undefined
+							})
+					})
 				})
 
-				it('code must be unique', () => {
-					return dbSave(schema, toCreate)
-						.then(() => {
-							return testTarget.create(toCreate)
+				describe('产品供应商', () => {
+					const supplier = '5de79b77da3537277c3f3b88',
+					name = 'supplier product name'
+	
+					beforeEach(() => {
+						testTarget = require('../server/biz/ProductSupplier')
+						return dbSave(schema, toCreate)
+							.then(doc => {
+								product = doc.id
+							})
+					})
+	
+					describe('findById', () => {
+						let subId, productDoc
+
+						beforeEach(() => {
+							return schema.findById(product)
+								.then(doc => {
+									productDoc = doc
+									doc.suppliers.push({supplier, code, name})
+									return doc.save()
+								})
+								.then(doc => {
+									subId = doc.suppliers[0].id
+								})
 						})
-						.should.be.rejectedWith()
+	
+						it('任何出错均抛出例外', () => {
+							return testTarget.findById('abc')
+								.should.be.rejectedWith()
+						})
+		
+						it('指定产品不存在', () => {
+							return testTarget.findById(ID_NOT_EXIST)
+								.then(doc => {
+									expect(doc).not.exist
+								})
+						})
+		
+						it('指定产品供应商不存在', () => {
+							return testTarget.findById(product, ID_NOT_EXIST)
+								.then(doc => {
+									expect(doc).not.exist
+								})
+						})
+	
+						it('正确', () => {
+							return testTarget.findById(product, subId)
+								.then(doc => {
+									expect(doc.product).eql(product)
+									expect(doc.id).eql(subId)
+									expect(doc.supplier).eql(supplier)
+									expect(doc.code).eql(code)
+									expect(doc.name).eql(name)
+									expect(doc.quots).not.exist
+									expect(doc.__v).eql(productDoc.__v)
+									expect(doc.updatedAt).eql(productDoc.updatedAt)
+								})
+						})
+					})
+	
+					describe('create', () => {
+						it('任何出错均抛出例外', () => {
+							return testTarget.create('abc')
+								.should.be.rejectedWith()
+						})
+		
+						it('指定产品不存在', () => {
+							return testTarget.create(ID_NOT_EXIST)
+								.should.be.rejectedWith()
+						})
+		
+						it('未指定供应商', () => {
+							return testTarget.create(product)
+								.should.be.rejectedWith()
+						})
+		
+						it('创建产品供应商', () => {
+							let productSupplier
+							return testTarget.create(product, {supplier, code, name})
+								.then(doc => {
+									productSupplier = doc
+									return schema.findById(productSupplier.product)
+								})
+								.then(doc => {
+									expect(doc.suppliers.length).eql(1)
+									const ps = doc.suppliers.id(productSupplier.id).toJSON()
+									expect(ps.supplier).eql(supplier)
+									expect(ps.name).eql(name)
+									expect(ps.code).eql(code)
+								})
+						})
+	
+						it('重复创建产品供应商', () => {
+							return schema.findById(product)
+								.then(doc => {
+									doc.suppliers.push({supplier: ID_NOT_EXIST, name, code})
+									doc.suppliers.push({supplier, name, code})
+									return doc.save()
+								})
+								.then(() => {
+									return testTarget.create(product, {supplier})
+								})
+								.should.be.rejectedWith()
+						})
+					})
+	
+					describe('list', () => {
+						it('指定产品不存在', () => {
+							return testTarget.list(ID_NOT_EXIST)
+								.then(suppliers => {
+									expect(suppliers.length).eql(0)
+								})
+						})
+	
+						it('产品无该任何供应商', () => {
+							return testTarget.list(product)
+								.then(suppliers => {
+									expect(suppliers.length).eql(0)
+								})
+						})
+	
+						it('正确查询', () => {
+							return schema.findById(product)
+								.then(doc => {
+									doc.suppliers.push({supplier, name, code})
+									return doc.save()
+								})
+								.then(() => {
+									return testTarget.list(product)
+								})
+								.then(suppliers => {
+									expect(suppliers.length).eql(1)
+									expect(suppliers[0].supplier).eql(supplier)
+									expect(suppliers[0].name).eql(name)
+									expect(suppliers[0].code).eql(code)
+									expect(suppliers[0].quots).not.exist
+								})
+						})
+					})
 				})
 
-				it('搜索字段包括code, desc, content, constructure, yarn, tags, remark', () => {
-					let products = []
-					products.push(dbSave(schema, {code: 'foo'}))
-					products.push(dbSave(schema, {code: '01', constructure: 'foo'}))
-					products.push(dbSave(schema, {code: '02', desc: 'foo'}))
-					products.push(dbSave(schema, {code: '03', tags: 'foo'}))
-					products.push(dbSave(schema, {code: '04', content: 'foo'}))
-					products.push(dbSave(schema, {code: '05', yarn: 'foo'}))
-					products.push(dbSave(schema, {code: '06', remark: 'foo'}))
-					return Promise.all(products)
-						.then(() => {
-							return testTarget.search({}, 'oo')
-						})
-						.then(data => {
-							expect(data.length).eqls(7)
-						})
-				})
+				describe('产品供应商报价', () => {
+					const supplier = '5de79b77da3537277c3f3b88'
+					let subId
 
-				it('create', () => {
-					return testTarget.create({code, desc, content, constructure, 
-						yarn, spec, grey, tags, creator, remark, state})
-						.then(doc => {
-							expect(doc.code).eql(code)
-							expect(doc.desc).eql(desc)
-							expect(doc.content).eql(content)
-							expect(doc.constructure).eql(constructure)
-							expect(doc.yarn).eql(yarn)
-							delete doc.spec.id
-							expect(doc.spec).eql(spec)
-							delete doc.grey.id
-							expect(doc.grey).eql(grey)
-							expect(doc.tags).eql(tags)
-							expect(doc.creator).eql(creator)
-							expect(doc.remark).eql(remark)
-							expect(doc.state).eql(state)
+					beforeEach(() => {
+						testTarget = require('../server/biz/ProductSupplierQuot')
+						return dbSave(schema, {code, suppliers: [{supplier}]})
+							.then(doc => {
+								product = doc.id
+								subId = doc.suppliers[0].id
+								expect(doc.code).eql(code)
+								expect(doc.suppliers[0].supplier).eql(supplier)
+							})
+					})
+	
+					describe('findById', () => {
+						let subId, productDoc
+						beforeEach(() => {
+							return schema.findById(product)
+								.then(doc => {
+									productDoc = doc
+									doc.suppliers.push({supplier, code, name})
+									return doc.save()
+								})
+								.then(doc => {
+									subId = doc.suppliers[0].id
+								})
 						})
-				})
+	
+						it('任何出错均抛出例外', () => {
+							return testTarget.findById('abc')
+								.should.be.rejectedWith()
+						})
+		
+						it('指定产品不存在', () => {
+							return testTarget.findById(ID_NOT_EXIST)
+								.then(doc => {
+									expect(doc).not.exist
+								})
+						})
+		
+						it('指定产品供应商不存在', () => {
+							return testTarget.findById(product, ID_NOT_EXIST)
+								.then(doc => {
+									expect(doc).not.exist
+								})
+						})
+	
+						it('正确', () => {
+							return testTarget.findById(product, subId)
+								.then(doc => {
+									expect(doc.product).eql(product)
+									expect(doc.id).eql(subId)
+									expect(doc.supplier).eql(supplier)
+									expect(doc.code).eql(code)
+									expect(doc.name).eql(name)
+									expect(doc.__v).eql(productDoc.__v)
+									expect(doc.updatedAt).eql(productDoc.updatedAt)
+								})
+						})
+					})
+	
+					describe('create', () => {
+						const price = 23.48
 
-				it('all fields except "state" field are updateable', () => {				
-					return dbSave(schema, {code: 'the code'})
-						.then(doc => {
-							id = doc.id
-							__v = doc.__v
-							return testTarget.update({id, __v, code, desc, content, constructure, 
-								yarn, spec, grey, tags, creator, remark, state})
+						it('任何出错均抛出例外', () => {
+							return testTarget.create('abc')
+								.should.be.rejectedWith()
 						})
-						.then(doc => {
-							expect(doc.code).eql(code)
-							expect(doc.desc).eql(desc)
-							expect(doc.content).eql(content)
-							expect(doc.constructure).eql(constructure)
-							expect(doc.yarn).eql(yarn)
-							delete doc.spec.id
-							expect(doc.spec).eql(spec)
-							delete doc.grey.id
-							expect(doc.grey).eql(grey)
-							expect(doc.tags).eql(tags)
-							expect(doc.creator).eql(creator)
-							expect(doc.remark).eql(remark)
-							expect(doc.state).undefined
+		
+						it('指定产品不存在', () => {
+							return testTarget.create(ID_NOT_EXIST)
+								.should.be.rejectedWith()
 						})
+		
+						it('未指定产品供应商标识', () => {
+							return testTarget.create(product)
+								.should.be.rejectedWith()
+						})
+
+						it('指定产品供应商标识不存在', () => {
+							return testTarget.create(product, ID_NOT_EXIST)
+								.should.be.rejectedWith()
+						})
+		
+						it('未提供报价', () => {
+							return testTarget.create(product, subId, {})
+								.should.be.rejectedWith()
+						})
+
+						it('创建最简单产品供应商报价', () => {
+							let quot
+							return testTarget.create(product, subId, {price})
+								.then(doc => {
+									quot = doc
+									expect(quot.date).exist
+									expect(quot.type).eql('enquery')
+									expect(quot.price).eql(price)
+									expect(quot.ref).not.exist
+									expect(quot.remake).not.exist
+									return schema.findById(quot.product)
+								})
+								.then(doc => {
+									doc = doc.toJSON()
+									expect(doc.suppliers[0].id).eql(quot.productSupplierId)
+									expect(doc.suppliers[0].quots[0].id).eql(quot.id)
+									expect(doc.suppliers[0].quots[0].date).eql(quot.date)
+									expect(doc.suppliers[0].quots[0].type).eql(quot.type)
+									expect(doc.suppliers[0].quots[0].price).eql(quot.price)
+									expect(doc.suppliers[0].quots[0].ref).not.exist
+									expect(doc.suppliers[0].quots[0].remake).not.exist
+								})
+						})
+
+						it('创建产品供应商报价', () => {
+							const type = 'offer',
+								date = new Date(),
+								ref = '5de79b77da3537277c3f3999',
+								remark = 'foo remark'
+							let quot
+							return testTarget.create(product, subId, {date, type, price, ref, remark})
+								.then(doc => {
+									quot = doc
+									expect(quot.date).eql(date.toJSON())
+									expect(quot.type).eql(type)
+									expect(quot.price).eql(price)
+									expect(quot.ref).eql(ref)
+									expect(quot.remark).eql(remark)
+									return schema.findById(quot.product)
+								})
+								.then(doc => {
+									doc = doc.toJSON()
+									expect(doc.suppliers[0].id).eql(quot.productSupplierId)
+									expect(doc.suppliers[0].quots[0].id).eql(quot.id)
+									expect(doc.suppliers[0].quots[0].date).eql(quot.date)
+									expect(doc.suppliers[0].quots[0].type).eql(quot.type)
+									expect(doc.suppliers[0].quots[0].price).eql(quot.price)
+									expect(doc.suppliers[0].quots[0].ref).eql(quot.ref)
+									expect(doc.suppliers[0].quots[0].remark).eql(quot.remark)
+								})
+						})
+					})
+	
+					describe('list', () => {
+						it('指定产品不存在', () => {
+							return testTarget.list(ID_NOT_EXIST)
+								.then(suppliers => {
+									expect(suppliers.length).eql(0)
+								})
+						})
+	
+						it('产品无该任何供应商', () => {
+							return testTarget.list(product)
+								.then(suppliers => {
+									expect(suppliers.length).eql(0)
+								})
+						})
+	
+						it('正确查询', () => {
+							return schema.findById(product)
+								.then(doc => {
+									doc.suppliers.push({supplier, name, code})
+									return doc.save()
+								})
+								.then(() => {
+									return testTarget.list(product)
+								})
+								.then(suppliers => {
+									expect(suppliers.length).eql(1)
+									expect(suppliers[0].supplier).eql(supplier)
+									expect(suppliers[0].name).eql(name)
+									expect(suppliers[0].code).eql(code)
+								})
+						})
+					})
 				})
 			})
 
@@ -215,7 +542,7 @@ describe('TexTrade', function () {
 				beforeEach(() => {
 					toCreate = {code}
 					schema = require('../db/schema/Customer');
-					testTarget = proxyquire('../server/biz/Customer', stubs);
+					testTarget = require('../server/biz/Customer');
 				})
 
 				it('code is required', () => {
@@ -643,6 +970,74 @@ describe('TexTrade', function () {
 
 					})
 
+				})
+			})
+
+			describe('CustomerRequirement - 客户需求', () => {
+				const requirement = 'customer requirment',
+				date = new Date(),
+				creator = '5de79b77da3537277c3f3b88'
+
+				let customer, req
+
+				beforeEach(() => {
+					toCreate = {code}
+					schema = require('../db/schema/Customer')
+					testTarget = require('../server/biz/CustomerRequirement')
+					return dbSave(schema, toCreate)
+						.then(doc => {
+							customer = doc.id
+						})
+				})
+
+				it('Customer is invalid ObjectId', () => {
+					return testTarget.create({customer: 'abc'})
+						.should.be.rejectedWith()
+				})
+
+				it('Customer is not found', () => {
+					return testTarget.create({customer: ID_NOT_EXIST})
+						.then(doc => {
+							expect(doc).not.exist
+						})
+				})
+
+				it('create a simplest requirement', () => {
+					return testTarget.create({customer, requirement})
+						.then(doc => {
+							req = doc
+							expect(req.Customer).eql(customer)
+							expect(req.requirement).eql(requirement)
+							expect(req.date).exist
+							expect(req.creator).not.exist
+							return schema.findById(customer)
+						})
+						.then(doc => {
+							doc = doc.toJSON()
+							expect(req.id).eql(doc.requirements[0].id)
+							expect(req.requirement).eql(doc.requirements[0].requirement)
+							expect(req.date).eql(doc.requirements[0].date)
+							expect(doc.requirements[0].creator).not.exist
+						})
+				})
+
+				it('create a full requirement', () => {
+					return testTarget.create({customer, date, requirement, creator})
+						.then(doc => {
+							req = doc
+							expect(req.Customer).eql(customer)
+							expect(req.requirement).eql(requirement)
+							expect(req.date).eql(date.toJSON())
+							expect(req.creator).eql(creator)
+							return schema.findById(customer)
+						})
+						.then(doc => {
+							doc = doc.toJSON()
+							expect(req.id).eql(doc.requirements[0].id)
+							expect(requirement).eql(doc.requirements[0].requirement)
+							expect(date.toJSON()).eql(doc.requirements[0].date)
+							expect(creator).eql(doc.requirements[0].creator)
+						})
 				})
 			})
 

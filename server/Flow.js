@@ -39,10 +39,14 @@ module.exports = {
     Product: {
         self: "Product",
         collection: "Products",
-        quots: 'ProductQuots'
+        suppliers: 'ProductSuppliers'
     },
-    ProductQuots: {
-        product: "Product"
+    ProductSuppliers: {
+        product: "Product",
+        add: 'ProductSuppliers'
+    },
+    ProductSupplier: {
+        collection: 'ProductSuppliers'
     },
     Users: {
         add: 'RegisterUser',

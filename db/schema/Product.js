@@ -1,7 +1,8 @@
 const mongoose = require('mongoose'),
       ObjectId = mongoose.Schema.Types.ObjectId,
       createCollection = require('@finelets/hyper-rest/db/mongoDb/CreateCollection'),
-      createSchema = require('@finelets/hyper-rest/db/mongoDb/CreateSchema')
+      createSchema = require('@finelets/hyper-rest/db/mongoDb/CreateSchema'),
+      productSupplierSchema = require('./ProductSupplier')
 
 const SpecSchema = createSchema({
   width: String,  // 门幅
@@ -22,7 +23,8 @@ const dbModel = createCollection({
       remark: String,
       state: {type: String, enum: ['draft', 'published', 'expired']},
       creator: ObjectId,
-      tags: String
+      tags: String,
+      suppliers: [productSupplierSchema]
     }
 })
 

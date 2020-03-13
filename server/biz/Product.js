@@ -4,6 +4,7 @@ const schema = require('../../db/schema/Product'),
 
 const config = {
 	schema,
+	projection: ['-suppliers'],
     updatables: ['code', 'desc', 'content', 'constructure', 'yarn',
                 'spec', 'grey', 'creator', 'tags', 'remark'],
 	searchables: ['code', 'desc', 'content', 'constructure', 'yarn', 'remark', 'tags']
