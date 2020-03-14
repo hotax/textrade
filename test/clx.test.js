@@ -642,23 +642,28 @@ describe('TexTrade', function () {
 					})
 				})
 
-				it('all fields are updateable', () => {				
-					return dbSave(schema, {code: 'the code'})
-						.then(doc => {
-							id = doc.id
-							__v = doc.__v
-							return testTarget.update({id, __v, code, name, address, link, creator, tags})
-						})
-						.then(doc => {
-							expect(doc.code).eql(code)
-							expect(doc.name).eql(name)
-							expect(doc.address).eql(address)
-							expect(doc.link).eql(link)
-							expect(doc.creator).eql(creator)
-							expect(doc.tags).eql(tags)
-						})
-				})
-
+				describe('更新', () => {
+					it('可直接修改客户编号、名字、地址、链接、创建者、标签信息', () => {				
+						return dbSave(schema, {code: 'the code'})
+							.then(doc => {
+								id = doc.id
+								__v = doc.__v
+								return testTarget.update({id, __v, code, name, address, link, creator, tags})
+							})
+							.then(doc => {
+								return schema.findById(id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(doc.code).eql(code)
+								expect(doc.name).eql(name)
+								expect(doc.address).eql(address)
+								expect(doc.link).eql(link)
+								expect(doc.creator).eql(creator)
+								expect(doc.tags).eql(tags)
+							})
+					})
+				})				
 			})
 
 			describe('Employee - 员工', () => {
