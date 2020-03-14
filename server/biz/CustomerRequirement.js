@@ -127,9 +127,10 @@ const custReq = {
 			})
 	},
 
-	create: (data) => {
+	create: (customer, data) => {
+		data = data || {}
 		if (!data.date) data.date = new Date()
-		return entity.createSubDoc(data.customer, 'requirements', data)
+		return entity.createSubDoc(customer, 'requirements', data)
 	}
 }
 

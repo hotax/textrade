@@ -533,11 +533,8 @@ describe('TexTrade', function () {
 					address = 'address',
 					link = 'link',
 					creator = '5ce79b99da5837277c3f3b66',
-					tags = 'tags',
-					contacts = [
-						{name: 'foo', phone: 'p1', email: 'email1'},
-						{name: 'fee', phone: 'p2', email: 'email2'}
-					]
+					tags = 'tags'
+				let customer
 
 				beforeEach(() => {
 					toCreate = {code}
@@ -546,8 +543,6 @@ describe('TexTrade', function () {
 				})
 
 				describe('创建', () => {
-					let customer
-
 					it('必须给出客户编号', () => {
 						return testTarget.create({})
 							.should.be.rejectedWith()
@@ -663,7 +658,70 @@ describe('TexTrade', function () {
 								expect(doc.tags).eql(tags)
 							})
 					})
-				})				
+				})	
+				
+				describe('客户需求', () => {
+					const requirement = 'customer requirment',
+					date = new Date()
+
+					let customerRequirement
+	
+					beforeEach(() => {
+						testTarget = require('../server/biz/CustomerRequirement')
+						return dbSave(schema, toCreate)
+							.then(doc => {
+								customer = doc.id
+							})
+					})
+	
+					describe('创建', () => {
+						it('Customer is invalid ObjectId', () => {
+							return testTarget.create('abc')
+								.should.be.rejectedWith()
+						})
+		
+						it('Customer is not found', () => {
+							return testTarget.create(ID_NOT_EXIST)
+								.then(doc => {
+									expect(doc).not.exist
+								})
+						})
+		
+						it('创建一最简单的客户需求', () => {
+							return testTarget.create(customer, {})
+								.then(doc => {
+									customerRequirement = doc
+									expect(customerRequirement.Customer).eql(customer)
+									expect(customerRequirement.date).exist
+									return schema.findById(customer)
+								})
+								.then(doc => {
+									doc = doc.toJSON()
+									expect(doc.requirements[0].id).eql(customerRequirement.id)
+									expect(doc.requirements[0].date).eql(customerRequirement.date)
+								})
+						})
+		
+						it('创建客户需求', () => {
+							return testTarget.create(customer, {date, requirement, creator})
+								.then(doc => {
+									customerRequirement = doc
+									expect(customerRequirement.Customer).eql(customer)
+									expect(customerRequirement.requirement).eql(requirement)
+									expect(customerRequirement.date).eql(date.toJSON())
+									expect(customerRequirement.creator).eql(creator)
+									return schema.findById(customer)
+								})
+								.then(doc => {
+									doc = doc.toJSON()
+									expect(doc.requirements[0].id).eql(customerRequirement.id)
+									expect(doc.requirements[0].date).eql(customerRequirement.date)
+									expect(doc.requirements[0].requirement).eql(customerRequirement.requirement)
+									expect(doc.requirements[0].creator).eql(customerRequirement.creator)
+								})
+						})
+					})
+				})
 			})
 
 			describe('Employee - 员工', () => {
@@ -1028,73 +1086,7 @@ describe('TexTrade', function () {
 				})
 			})
 
-			describe('CustomerRequirement - 客户需求', () => {
-				const requirement = 'customer requirment',
-				date = new Date(),
-				creator = '5de79b77da3537277c3f3b88'
-
-				let customer, req
-
-				beforeEach(() => {
-					toCreate = {code}
-					schema = require('../db/schema/Customer')
-					testTarget = require('../server/biz/CustomerRequirement')
-					return dbSave(schema, toCreate)
-						.then(doc => {
-							customer = doc.id
-						})
-				})
-
-				it('Customer is invalid ObjectId', () => {
-					return testTarget.create({customer: 'abc'})
-						.should.be.rejectedWith()
-				})
-
-				it('Customer is not found', () => {
-					return testTarget.create({customer: ID_NOT_EXIST})
-						.then(doc => {
-							expect(doc).not.exist
-						})
-				})
-
-				it('create a simplest requirement', () => {
-					return testTarget.create({customer, requirement})
-						.then(doc => {
-							req = doc
-							expect(req.Customer).eql(customer)
-							expect(req.requirement).eql(requirement)
-							expect(req.date).exist
-							expect(req.creator).not.exist
-							return schema.findById(customer)
-						})
-						.then(doc => {
-							doc = doc.toJSON()
-							expect(req.id).eql(doc.requirements[0].id)
-							expect(req.requirement).eql(doc.requirements[0].requirement)
-							expect(req.date).eql(doc.requirements[0].date)
-							expect(doc.requirements[0].creator).not.exist
-						})
-				})
-
-				it('create a full requirement', () => {
-					return testTarget.create({customer, date, requirement, creator})
-						.then(doc => {
-							req = doc
-							expect(req.Customer).eql(customer)
-							expect(req.requirement).eql(requirement)
-							expect(req.date).eql(date.toJSON())
-							expect(req.creator).eql(creator)
-							return schema.findById(customer)
-						})
-						.then(doc => {
-							doc = doc.toJSON()
-							expect(req.id).eql(doc.requirements[0].id)
-							expect(requirement).eql(doc.requirements[0].requirement)
-							expect(date.toJSON()).eql(doc.requirements[0].date)
-							expect(creator).eql(doc.requirements[0].creator)
-						})
-				})
-			})
+			
 
 			describe('Quots - 报价', () => {
 				const requirement = 'customer requirment'
