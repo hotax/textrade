@@ -724,6 +724,101 @@ describe('TexTrade', function () {
 				})
 			})
 
+			describe('Parts - 原料/加工', () => {
+				const name = 'name',
+					type = 'process',
+					creator = '5ce79b99da5837277c3f3b66',
+					tags = 'tags'
+				let part
+
+				beforeEach(() => {
+					toCreate = {name}
+					schema = require('../db/schema/Part');
+					testTarget = require('../server/biz/Part');
+				})
+
+				describe('创建', () => {
+					it('必须给出名称', () => {
+						return testTarget.create({})
+							.should.be.rejectedWith()
+					})
+
+					it('创建一最简单的原料', () => {
+						return testTarget.create(toCreate)
+							.then(doc => {
+								part = doc
+								expect(doc.type).eql('material')
+								expect(doc.name).eql(name)
+								return schema.findById(doc.id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(doc.type).eql(part.type)
+								expect(doc.name).eql(part.name)
+							})
+					})
+
+					it('创建客户', () => {
+						return testTarget.create({code, type, name, creator, tags})
+							.then(doc => {
+								part = doc
+								expect(doc.code).eql(code)
+								expect(doc.name).eql(name)
+								expect(doc.type).eql(type)
+								expect(doc.creator).eql(creator)
+								expect(doc.tags).eql(tags)
+								return schema.findById(doc.id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(doc.code).eql(part.code)
+								expect(doc.name).eql(part.name)
+								expect(doc.type).eql(part.type)
+								expect(doc.creator).eql(part.creator)
+								expect(doc.tags).eql(part.tags)
+							})
+					})
+				})
+				
+				describe('搜索', () => {
+					it('搜索字段包括name, code, tags', () => {
+						let data = []
+						data.push(dbSave(schema, {code: 'foo', name}))
+						data.push(dbSave(schema, {code: '01', name: 'foo'}))
+						data.push(dbSave(schema, {code: '03', name, tags: 'foo'}))
+						return Promise.all(data)
+							.then(() => {
+								return testTarget.search({}, 'oo')
+							})
+							.then(data => {
+								expect(data.length).eqls(3)
+							})
+					})
+				})
+
+				describe('更新', () => {
+					it('可直接修改编号、名字、类型、创建者、标签信息', () => {				
+						return dbSave(schema, {name: 'the name'})
+							.then(doc => {
+								id = doc.id
+								__v = doc.__v
+								return testTarget.update({id, __v, code, type, name, creator, tags})
+							})
+							.then(() => {
+								return schema.findById(id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(doc.code).eql(code)
+								expect(doc.name).eql(name)
+								expect(doc.type).eql(type)
+								expect(doc.creator).eql(creator)
+								expect(doc.tags).eql(tags)
+							})
+					})
+				})	
+			})
+
 			describe('Employee - 员工', () => {
 				const userId = 'foo',
 					name = 'foo name',
@@ -1085,8 +1180,6 @@ describe('TexTrade', function () {
 
 				})
 			})
-
-			
 
 			describe('Quots - 报价', () => {
 				const requirement = 'customer requirment'
