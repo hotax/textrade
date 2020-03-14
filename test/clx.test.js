@@ -545,18 +545,61 @@ describe('TexTrade', function () {
 					testTarget = require('../server/biz/Customer');
 				})
 
-				it('code is required', () => {
-					return testTarget.create({})
-						.should.be.rejectedWith()
-				})
+				describe('创建', () => {
+					let customer
 
-				it('code must be unique', () => {
-					return dbSave(schema, toCreate)
-						.then(() => {
-							return testTarget.create(toCreate)
-						})
-						.should.be.rejectedWith()
+					it('必须给出客户编号', () => {
+						return testTarget.create({})
+							.should.be.rejectedWith()
+					})
+
+					it('客户编号必须唯一', () => {
+						return dbSave(schema, toCreate)
+							.then(() => {
+								return testTarget.create(toCreate)
+							})
+							.should.be.rejectedWith()
+					})
+
+					it('创建一最简单的客户', () => {
+						return testTarget.create(toCreate)
+							.then(doc => {
+								customer = doc
+								expect(doc.code).eql(code)
+								return schema.findById(doc.id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(doc.code).eql(customer.code)
+							})
+					})
+
+					it('创建客户', () => {
+						return testTarget.create({code, name, address, link, creator, tags})
+							.then(doc => {
+								customer = doc
+								expect(doc.code).eql(code)
+								expect(doc.name).eql(name)
+								expect(doc.address).eql(address)
+								expect(doc.link).eql(link)
+								expect(doc.creator).eql(creator)
+								expect(doc.tags).eql(tags)
+								return schema.findById(doc.id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(doc.code).eql(customer.code)
+								expect(doc.name).eql(customer.name)
+								expect(doc.address).eql(customer.address)
+								expect(doc.link).eql(customer.link)
+								expect(doc.creator).eql(customer.creator)
+								expect(doc.tags).eql(customer.tags)
+							})
+					})
 				})
+				
+
+				
 
 				it('搜索字段包括name, code, address, tags', () => {
 					let data = []
@@ -577,20 +620,7 @@ describe('TexTrade', function () {
 						})
 				})
 
-				it('create', () => {
-					return testTarget.create({code, name, address, link, creator, tags, contacts})
-						.then(doc => {
-							expect(doc.code).eql(code)
-							expect(doc.name).eql(name)
-							expect(doc.address).eql(address)
-							expect(doc.link).eql(link)
-							expect(doc.creator).eql(creator)
-							expect(doc.tags).eql(tags)
-							delete doc.contacts[0].id
-							delete doc.contacts[1].id
-							expect(doc.contacts).eql(contacts)
-						})
-				})
+				
 
 				it('all fields are updateable', () => {				
 					return dbSave(schema, {code: 'the code'})
