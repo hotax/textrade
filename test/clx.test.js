@@ -447,11 +447,8 @@ describe('TexTrade', function () {
 					account = 'account',
 					link = 'link',
 					creator = '5ce79b99da5837277c3f3b66',
-					tags = 'tags',
-					contacts = [
-						{name: 'foo', phone: 'p1', email: 'email1'},
-						{name: 'fee', phone: 'p2', email: 'email2'}
-					]
+					tags = 'tags'
+				let supplier
 
 				beforeEach(() => {
 					toCreate = {code}
@@ -459,72 +456,97 @@ describe('TexTrade', function () {
 					testTarget = require('../server/biz/Supplier')
 				})
 
-				it('code is required', () => {
-					return testTarget.create({})
-						.should.be.rejectedWith()
+				describe('创建', () => {
+					it('必须给出供应商编号', () => {
+						return testTarget.create({})
+							.should.be.rejectedWith()
+					})
+	
+					it('供应商编号必须唯一', () => {
+						return dbSave(schema, toCreate)
+							.then(() => {
+								return testTarget.create(toCreate)
+							})
+							.should.be.rejectedWith()
+					})
+
+					it('创建一最简单的供应商', () => {
+						return testTarget.create(toCreate)
+							.then(doc => {
+								supplier = doc
+								expect(doc.code).eql(code)
+								return schema.findById(doc.id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(doc.code).eql(supplier.code)
+							})
+					})
+
+					it('创建供应商', () => {
+						return testTarget.create({code, name, address, account, link, creator, tags})
+							.then(doc => {
+								supplier = doc
+								expect(doc.code).eql(code)
+								expect(doc.name).eql(name)
+								expect(doc.address).eql(address)
+								expect(doc.account).eql(account)
+								expect(doc.link).eql(link)
+								expect(doc.creator).eql(creator)
+								expect(doc.tags).eql(tags)
+								return schema.findById(doc.id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(doc.code).eql(supplier.code)
+								expect(doc.name).eql(supplier.name)
+								expect(doc.address).eql(supplier.address)
+								expect(doc.account).eql(supplier.account)
+								expect(doc.link).eql(supplier.link)
+								expect(doc.creator).eql(supplier.creator)
+								expect(doc.tags).eql(supplier.tags)
+							})
+					})
 				})
 
-				it('code must be unique', () => {
-					return dbSave(schema, toCreate)
-						.then(() => {
-							return testTarget.create(toCreate)
-						})
-						.should.be.rejectedWith()
+				describe('搜索', () => {
+					it('搜索字段包括name, code, address, tags', () => {
+						let data = []
+						data.push(dbSave(schema, {code: 'foo'}))
+						data.push(dbSave(schema, {code: '01', name: 'foo'}))
+						data.push(dbSave(schema, {code: '02', address: 'foo'}))
+						data.push(dbSave(schema, {code: '03', tags: 'foo'}))
+						data.push(dbSave(schema, {code: '04', link: 'foo'}))
+						return Promise.all(data)
+							.then(() => {
+								return testTarget.search({}, 'oo')
+							})
+							.then(data => {
+								expect(data.length).eqls(4)
+							})
+					})
 				})
 
-				it('搜索字段包括name, code, address, tags', () => {
-					let data = []
-					data.push(dbSave(schema, {code: 'foo'}))
-					data.push(dbSave(schema, {code: '01', name: 'foo'}))
-					data.push(dbSave(schema, {code: '02', address: 'foo'}))
-					data.push(dbSave(schema, {code: '03', tags: 'foo'}))
-					data.push(dbSave(schema, {code: '04', link: 'foo'}))
-					return Promise.all(data)
-						.then(() => {
-							return testTarget.search({}, 'oo')
-						})
-						.then(data => {
-							expect(data.length).eqls(4)
-						})
-				})
-
-				it('create', () => {
-					return testTarget.create({code, name, address, account, link, creator, tags, contacts})
-						.then(doc => {
-							expect(doc.code).eql(code)
-							expect(doc.name).eql(name)
-							expect(doc.address).eql(address)
-							expect(doc.account).eql(account)
-							expect(doc.link).eql(link)
-							expect(doc.creator).eql(creator)
-							expect(doc.tags).eql(tags)
-							delete doc.contacts[0].id
-							delete doc.contacts[1].id
-							expect(doc.contacts).eql(contacts)
-						})
-				})
-
-				it('all fields are updateable', () => {				
-					return dbSave(schema, {code: 'the code'})
-						.then(doc => {
-							id = doc.id
-							__v = doc.__v
-							return testTarget.update({id, __v, code, name, address, account, link, creator, contacts, tags})
-						})
-						.then(doc => {
-							expect(doc.code).eql(code)
-							expect(doc.name).eql(name)
-							expect(doc.address).eql(address)
-							expect(doc.account).eql(account)
-							expect(doc.link).eql(link)
-							expect(doc.creator).eql(creator)
-							expect(doc.tags).eql(tags)
-							delete doc.contacts[0].id
-							delete doc.contacts[1].id
-							expect(doc.contacts).eql(contacts)
-							expect(doc.__v).eql(1)
-						})
-				})
+				describe('更新', () => {
+					it('所有字段均可更新', () => {				
+						return dbSave(schema, {code: 'the code'})
+							.then(doc => {
+								id = doc.id
+								__v = doc.__v
+								return testTarget.update({id, __v, code, name, address, account, link, creator, tags})
+							})
+							.then(doc => {
+								expect(doc.code).eql(code)
+								expect(doc.name).eql(name)
+								expect(doc.address).eql(address)
+								expect(doc.account).eql(account)
+								expect(doc.link).eql(link)
+								expect(doc.creator).eql(creator)
+								expect(doc.tags).eql(tags)
+								expect(doc.__v).eql(1)
+							})
+					})
+				})	
 
 			})
 
