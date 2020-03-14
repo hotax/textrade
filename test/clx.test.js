@@ -598,29 +598,49 @@ describe('TexTrade', function () {
 					})
 				})
 				
+				describe('搜索', () => {
+					// 由于采用了finelets框架实现，故此例也可无需测试
+					it('未搜索到任何客户资料', () => {
+						return testTarget.search({}, 'oo')
+							.then(docs => {
+								expect(docs.length).eqls(0)
+							})
+					})
 
-				
+					it('搜索字段包括name, code, address, tags', () => {
+						let data = []
+						data.push(dbSave(schema, {code: 'foo'}))
+						data.push(dbSave(schema, {code: '01', name: 'foo'}))
+						data.push(dbSave(schema, {code: '02', address: 'foo'}))
+						data.push(dbSave(schema, {code: '03', tags: 'foo'}))
+						data.push(dbSave(schema, {code: '04', link: 'foo'}))
+						return Promise.all(data)
+							.then(() => {
+								return testTarget.search({}, 'oo')
+							})
+							.then(data => {
+								expect(data.length).eqls(4)
+							})
+					})
 
-				it('搜索字段包括name, code, address, tags', () => {
-					let data = []
-					data.push(dbSave(schema, {code: 'foo'}))
-					data.push(dbSave(schema, {code: '01', name: 'foo'}))
-					data.push(dbSave(schema, {code: '02', address: 'foo'}))
-					data.push(dbSave(schema, {code: '03', tags: 'foo'}))
-					data.push(dbSave(schema, {code: '04', link: 'foo'}))
-					return Promise.all(data)
-						.then(() => {
-							return testTarget.search({}, 'oo')
-						})
-						.then(data => {
-							expect(data.length).eqls(4)
-						})
-						.catch(e => {
-							throw e
-						})
+					// 由于采用了finelets框架实现，故此例也可无需测试
+					it('附带查询条件', () => {
+						let data = []
+						data.push(dbSave(schema, {code: 'foo'}))
+						data.push(dbSave(schema, {code: '01', name: 'goo', tags: 'abc'}))
+						data.push(dbSave(schema, {code: '05', name: 'hoo', tags: 'abc'}))
+						data.push(dbSave(schema, {code: '02', address: 'foo'}))
+						data.push(dbSave(schema, {code: '03', tags: 'foo'}))
+						data.push(dbSave(schema, {code: '04', link: 'foo'}))
+						return Promise.all(data)
+							.then(() => {
+								return testTarget.search({tags: 'abc'}, 'oo')
+							})
+							.then(data => {
+								expect(data.length).eqls(2)
+							})
+					})
 				})
-
-				
 
 				it('all fields are updateable', () => {				
 					return dbSave(schema, {code: 'the code'})
