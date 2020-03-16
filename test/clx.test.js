@@ -21,36 +21,32 @@ describe('TexTrade', function () {
 				return clearDB(done);
 			})
 			
-			describe('Products', () => {
+			describe('Products - 产品', () => {
+				const desc = 'desc',
+					content = 'content',
+					constructure = 'constructure', 
+					yarn = 'yarn',
+					spec = {width: '50cm', dnsty: '100x200', GSM: 65},
+					grey = {width: '60cm', dnsty: '110x200', GSM: 75},
+					creator = '5ce79b99da5837277c3f3b66',
+					remark = 'remark',
+					tags = 'tags',
+					state = 'draft'
 				let product
 
 				beforeEach(() => {
 					toCreate = {code}
-					schema = require('../db/schema/Product');
+					schema = require('../db/schema/Product')
+					testTarget = require('../server/biz/Product')
 				})
 
-				describe('产品', () => {
-					const desc = 'desc',
-						content = 'content',
-						constructure = 'constructure', 
-						yarn = 'yarn',
-						spec = {width: '50cm', dnsty: '100x200', GSM: 65},
-						grey = {width: '60cm', dnsty: '110x200', GSM: 75},
-						creator = '5ce79b99da5837277c3f3b66',
-						remark = 'remark',
-						tags = 'tags',
-						state = 'draft'
-
-					beforeEach(() => {
-						testTarget = require('../server/biz/Product')
-					})
-	
-					it('code is required', () => {
+				describe('创建产品', () => {
+					it('必须给出产品编号', () => {
 						return testTarget.create({})
 							.should.be.rejectedWith()
 					})
 	
-					it('code must be unique', () => {
+					it('产品编号必须唯一', () => {
 						return dbSave(schema, toCreate)
 							.then(() => {
 								return testTarget.create(toCreate)
@@ -58,6 +54,47 @@ describe('TexTrade', function () {
 							.should.be.rejectedWith()
 					})
 	
+					it('创建最简单的产品', () => {
+						return testTarget.create({code})
+							.then(doc => {
+								product = doc
+								expect(doc.code).eql(code)
+								return schema.findById(doc.id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								const {id, code, __v, createdAt, updatedAt} = product
+								expect(doc).eql({id, code, __v, createdAt, updatedAt})
+								expect(doc).eql(product)
+							})
+					})
+
+					it('正确创建', () => {
+						return testTarget.create({code, desc, content, constructure, 
+							yarn, spec, grey, tags, creator, remark, state})
+							.then(doc => {
+								product = doc
+								expect(doc.code).eql(code)
+								expect(doc.desc).eql(desc)
+								expect(doc.content).eql(content)
+								expect(doc.constructure).eql(constructure)
+								expect(doc.yarn).eql(yarn)
+								expect(doc.spec).eql({id: doc.spec.id, ...spec})
+								expect(doc.grey).eql({id: doc.grey.id, ...grey})
+								expect(doc.tags).eql(tags)
+								expect(doc.creator).eql(creator)
+								expect(doc.remark).eql(remark)
+								expect(doc.state).eql(state)
+								return schema.findById(doc.id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(doc).eql(product)
+							})
+					})
+				})
+
+				describe('搜索产品', () => {
 					it('搜索字段包括code, desc, content, constructure, yarn, tags, remark', () => {
 						let products = []
 						products.push(dbSave(schema, {code: 'foo'}))
@@ -75,192 +112,34 @@ describe('TexTrade', function () {
 								expect(data.length).eqls(7)
 							})
 					})
-	
-					it('create', () => {
-						return testTarget.create({code, desc, content, constructure, 
-							yarn, spec, grey, tags, creator, remark, state})
-							.then(doc => {
-								expect(doc.code).eql(code)
-								expect(doc.desc).eql(desc)
-								expect(doc.content).eql(content)
-								expect(doc.constructure).eql(constructure)
-								expect(doc.yarn).eql(yarn)
-								delete doc.spec.id
-								expect(doc.spec).eql(spec)
-								delete doc.grey.id
-								expect(doc.grey).eql(grey)
-								expect(doc.tags).eql(tags)
-								expect(doc.creator).eql(creator)
-								expect(doc.remark).eql(remark)
-								expect(doc.state).eql(state)
-							})
-					})
-	
-					it('all fields except "state" field are updateable', () => {				
+				})
+
+				describe('更新', () => {
+					it('除state字段，其余所有字段均可更新', () => {				
 						return dbSave(schema, {code: 'the code'})
 							.then(doc => {
-								id = doc.id
-								__v = doc.__v
+								product = doc
+								const {id, __v} = doc
 								return testTarget.update({id, __v, code, desc, content, constructure, 
 									yarn, spec, grey, tags, creator, remark, state})
 							})
-							.then(doc => {
-								expect(doc.code).eql(code)
-								expect(doc.desc).eql(desc)
-								expect(doc.content).eql(content)
-								expect(doc.constructure).eql(constructure)
-								expect(doc.yarn).eql(yarn)
-								delete doc.spec.id
-								expect(doc.spec).eql(spec)
-								delete doc.grey.id
-								expect(doc.grey).eql(grey)
-								expect(doc.tags).eql(tags)
-								expect(doc.creator).eql(creator)
-								expect(doc.remark).eql(remark)
-								expect(doc.state).undefined
+							.then(() => {
+								return schema.findById(product.id)
 							})
-					})
-				})
-
-				describe('产品供应商', () => {
-					const supplier = '5de79b77da3537277c3f3b88',
-					name = 'supplier product name'
-	
-					beforeEach(() => {
-						testTarget = require('../server/biz/ProductSupplier')
-						return dbSave(schema, toCreate)
-							.then(doc => {
-								product = doc.id
+							.then((doc) => {
+								doc = doc.toJSON()
+								expect(doc.updatedAt).not.eql(product.updatedAt)
+								expect(doc).eql({
+									id: product.id, 
+									code, desc, content, constructure, 
+									yarn, tags, creator, remark,
+									spec: {id: doc.spec.id, ...spec},
+									grey: {id: doc.grey.id, ...grey}, 
+									__v: product.__v + 1,
+									createdAt: product.createdAt,
+									updatedAt: doc.updatedAt
+								})
 							})
-					})
-	
-					describe('findById', () => {
-						let subId, productDoc
-
-						beforeEach(() => {
-							return schema.findById(product)
-								.then(doc => {
-									productDoc = doc
-									doc.suppliers.push({supplier, code, name})
-									return doc.save()
-								})
-								.then(doc => {
-									subId = doc.suppliers[0].id
-								})
-						})
-	
-						it('任何出错均抛出例外', () => {
-							return testTarget.findById('abc')
-								.should.be.rejectedWith()
-						})
-		
-						it('指定产品不存在', () => {
-							return testTarget.findById(ID_NOT_EXIST)
-								.then(doc => {
-									expect(doc).not.exist
-								})
-						})
-		
-						it('指定产品供应商不存在', () => {
-							return testTarget.findById(product, ID_NOT_EXIST)
-								.then(doc => {
-									expect(doc).not.exist
-								})
-						})
-	
-						it('正确', () => {
-							return testTarget.findById(product, subId)
-								.then(doc => {
-									expect(doc.product).eql(product)
-									expect(doc.id).eql(subId)
-									expect(doc.supplier).eql(supplier)
-									expect(doc.code).eql(code)
-									expect(doc.name).eql(name)
-									expect(doc.quots).not.exist
-									expect(doc.__v).eql(productDoc.__v)
-									expect(doc.updatedAt).eql(productDoc.updatedAt)
-								})
-						})
-					})
-	
-					describe('create', () => {
-						it('任何出错均抛出例外', () => {
-							return testTarget.create('abc')
-								.should.be.rejectedWith()
-						})
-		
-						it('指定产品不存在', () => {
-							return testTarget.create(ID_NOT_EXIST)
-								.should.be.rejectedWith()
-						})
-		
-						it('未指定供应商', () => {
-							return testTarget.create(product)
-								.should.be.rejectedWith()
-						})
-		
-						it('创建产品供应商', () => {
-							let productSupplier
-							return testTarget.create(product, {supplier, code, name})
-								.then(doc => {
-									productSupplier = doc
-									return schema.findById(productSupplier.product)
-								})
-								.then(doc => {
-									expect(doc.suppliers.length).eql(1)
-									const ps = doc.suppliers.id(productSupplier.id).toJSON()
-									expect(ps.supplier).eql(supplier)
-									expect(ps.name).eql(name)
-									expect(ps.code).eql(code)
-								})
-						})
-	
-						it('重复创建产品供应商', () => {
-							return schema.findById(product)
-								.then(doc => {
-									doc.suppliers.push({supplier: ID_NOT_EXIST, name, code})
-									doc.suppliers.push({supplier, name, code})
-									return doc.save()
-								})
-								.then(() => {
-									return testTarget.create(product, {supplier})
-								})
-								.should.be.rejectedWith()
-						})
-					})
-	
-					describe('list', () => {
-						it('指定产品不存在', () => {
-							return testTarget.list(ID_NOT_EXIST)
-								.then(suppliers => {
-									expect(suppliers.length).eql(0)
-								})
-						})
-	
-						it('产品无该任何供应商', () => {
-							return testTarget.list(product)
-								.then(suppliers => {
-									expect(suppliers.length).eql(0)
-								})
-						})
-	
-						it('正确查询', () => {
-							return schema.findById(product)
-								.then(doc => {
-									doc.suppliers.push({supplier, name, code})
-									return doc.save()
-								})
-								.then(() => {
-									return testTarget.list(product)
-								})
-								.then(suppliers => {
-									expect(suppliers.length).eql(1)
-									expect(suppliers[0].supplier).eql(supplier)
-									expect(suppliers[0].name).eql(name)
-									expect(suppliers[0].code).eql(code)
-									expect(suppliers[0].quots).not.exist
-								})
-						})
 					})
 				})
 			})
@@ -355,19 +234,24 @@ describe('TexTrade', function () {
 					it('所有字段均可更新', () => {				
 						return dbSave(schema, {code: 'the code'})
 							.then(doc => {
+								supplier = doc
 								id = doc.id
 								__v = doc.__v
 								return testTarget.update({id, __v, code, name, address, account, link, creator, tags})
 							})
+							.then(() => {
+								return schema.findById(supplier.id)
+							})
 							.then(doc => {
-								expect(doc.code).eql(code)
-								expect(doc.name).eql(name)
-								expect(doc.address).eql(address)
-								expect(doc.account).eql(account)
-								expect(doc.link).eql(link)
-								expect(doc.creator).eql(creator)
-								expect(doc.tags).eql(tags)
-								expect(doc.__v).eql(1)
+								doc = doc.toJSON()
+								expect(doc.updatedAt).not.eql(supplier.updatedAt)
+								expect(doc).eql({
+									id: supplier.id, 
+									code, name, address, account, link, creator, tags, 
+									__v: supplier.__v + 1,
+									createdAt: supplier.createdAt,
+									updatedAt: doc.updatedAt
+								})
 							})
 					})
 				})	

@@ -1,7 +1,6 @@
 const mongoose = require('mongoose'),
     ObjectId = mongoose.Schema.Types.ObjectId,
-    createCollection = require('@finelets/hyper-rest/db/mongoDb/CreateCollection'),
-    contactSchema = require('./Contact')
+    createCollection = require('@finelets/hyper-rest/db/mongoDb/CreateCollection')
 
 const dbModel = createCollection({
     name: 'Supplier',
@@ -12,8 +11,7 @@ const dbModel = createCollection({
         account: String,
         link: String,
         creator: ObjectId,
-        tags: String,
-        contacts: [contactSchema]
+        tags: String
     }
 })
 
