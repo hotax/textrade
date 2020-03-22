@@ -12,7 +12,8 @@ const {
 module.exports = {
     url: '/textrade/api/suppliers/:id',
     transitions: {
-        ProductSupplier: {id: 'context'}
+        ProductSupplier: {id: 'context'},
+        SupplierPart: {id: 'context'}
     },
     rests: [{
             type: 'read',

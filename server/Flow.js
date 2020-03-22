@@ -44,7 +44,12 @@ module.exports = {
     },
     Part: {
         self: "Part",
-        collection: "Parts"
+        collection: "Parts",
+        suppliers: 'PartSuppliers'
+    },
+    PartSuppliers: {
+        add: 'PartSuppliers',
+        part: 'Part'
     },
     Products: {
         add: 'Products',
