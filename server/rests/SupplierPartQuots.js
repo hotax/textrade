@@ -1,7 +1,7 @@
 const entity = require('../biz/PartQuot')
 
-const list = function ({id}) {
-    return entity.listQuotsById(id)
+const list = function ({supplier, part}) {
+    return entity.listQuots(supplier, part)
         .then(function (list) {
             return {
                 items: list
@@ -10,15 +10,15 @@ const list = function ({id}) {
 }
 
 module.exports = {
-    url: '/textrade/api/part-supplier/:id/quots',
+    url: '/textrade/api/suppliers/:supplier/parts/:part/quots',
     transitions: {
-        PartQuot: {id: 'context'}
+        SupplierPart: {supplier: 'params.supplier', part: 'params.part'}
     },
     rests: [{
             type: 'create',
-            target: 'PartQuot',
+            target: 'SupplierPart',
             handler: (req) => {
-                return entity.create(req.body)
+                return entity.create({supplier: req.params.id, ...req.body})
             }
         },
         {

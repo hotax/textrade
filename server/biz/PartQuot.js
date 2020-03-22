@@ -63,8 +63,21 @@ const addIn = {
                 if(doc) {
                     doc = doc.toJSON()
                     docs = __.map(doc.quots, (quot) => {
-                        return {PartQuot: doc.id, supplier, part, ...quot, __v: doc.__v, 
-                            createdAt: doc.createdAt, updatedAt: doc.updatedAt}
+                        return {supplier: doc.supplier, part: doc.part, ...quot}
+                    })
+                }
+                return docs
+            })
+    },
+
+    listQuotsById: (id) => {
+        return schema.findById(id)
+            .then(doc => {
+                let docs = []
+                if(doc) {
+                    doc = doc.toJSON()
+                    docs = __.map(doc.quots, (quot) => {
+                        return {supplier: doc.supplier, part: doc.part, ...quot}
                     })
                 }
                 return docs
