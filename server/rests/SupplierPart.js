@@ -7,6 +7,7 @@ const read = function (id, {supplier, part}) {
 module.exports = {
     url: '/textrade/api/suppliers/:supplier/parts/:part',
     transitions: {
+        SupplierPart: {supplier: 'params.supplier', part: 'params.part'},
         SupplierParts: {supplier: 'params.id', part: 'context.part'},
         PartSuppliers: {part: 'params.id', supplier: 'context.supplier'}
     },

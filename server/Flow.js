@@ -21,6 +21,10 @@ module.exports = {
         add: 'SupplierParts',
         supplier: 'Supplier'
     },
+    SupplierPart: {
+        quots: 'PartQuots',
+        self: 'SupplierPart'
+    },
     Customers: {
         add: 'Customers',
         home: 'TexTrade'
@@ -46,6 +50,10 @@ module.exports = {
         self: "Part",
         collection: "Parts",
         suppliers: 'PartSuppliers'
+    },
+    PartQuot: {
+        self: 'PartQuot',
+        partQuots: 'PartQuots'
     },
     PartSuppliers: {
         add: 'PartSuppliers',
