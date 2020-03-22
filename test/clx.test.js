@@ -40,61 +40,7 @@ describe('TexTrade', function () {
 					testTarget = require('../server/biz/Product')
 				})
 
-				describe('创建产品', () => {
-					it('必须给出产品编号', () => {
-						return testTarget.create({})
-							.should.be.rejectedWith()
-					})
-	
-					it('产品编号必须唯一', () => {
-						return dbSave(schema, toCreate)
-							.then(() => {
-								return testTarget.create(toCreate)
-							})
-							.should.be.rejectedWith()
-					})
-	
-					it('创建最简单的产品', () => {
-						return testTarget.create({code})
-							.then(doc => {
-								product = doc
-								expect(doc.code).eql(code)
-								return schema.findById(doc.id)
-							})
-							.then(doc => {
-								doc = doc.toJSON()
-								const {id, code, __v, createdAt, updatedAt} = product
-								expect(doc).eql({id, code, __v, createdAt, updatedAt})
-								expect(doc).eql(product)
-							})
-					})
-
-					it('正确创建', () => {
-						return testTarget.create({code, desc, content, constructure, 
-							yarn, spec, grey, tags, creator, remark, state})
-							.then(doc => {
-								product = doc
-								expect(doc.code).eql(code)
-								expect(doc.desc).eql(desc)
-								expect(doc.content).eql(content)
-								expect(doc.constructure).eql(constructure)
-								expect(doc.yarn).eql(yarn)
-								expect(doc.spec).eql({id: doc.spec.id, ...spec})
-								expect(doc.grey).eql({id: doc.grey.id, ...grey})
-								expect(doc.tags).eql(tags)
-								expect(doc.creator).eql(creator)
-								expect(doc.remark).eql(remark)
-								expect(doc.state).eql(state)
-								return schema.findById(doc.id)
-							})
-							.then(doc => {
-								doc = doc.toJSON()
-								expect(doc).eql(product)
-							})
-					})
-				})
-
-				describe('搜索产品', () => {
+				describe('搜索', () => {
 					it('搜索字段包括code, desc, content, constructure, yarn, tags, remark', () => {
 						let products = []
 						products.push(dbSave(schema, {code: 'foo'}))
@@ -112,10 +58,117 @@ describe('TexTrade', function () {
 								expect(data.length).eqls(7)
 							})
 					})
+
+					it('搜索结果不包含产品链', () => {
+						const productData = {code, desc, content, constructure,
+							yarn, spec, grey, tags, creator, remark, state}
+						return dbSave(schema, {...productData, chains:[{}]})
+							.then(() => {
+								return testTarget.search({})
+							})
+							.then((docs) => {
+								expect(docs.length).eql(1)
+								expect(docs[0]).eql({
+									id: docs[0].id,
+									...{...productData, 
+										spec: {id: docs[0].spec.id, ...docs[0].spec},
+										grey: {id: docs[0].grey.id, ...docs[0].grey}}
+								})
+							})
+					})
+				})
+
+				describe('创建', () => {
+					it('必须给出产品编号', () => {
+						return testTarget.create({})
+							.should.be.rejectedWith()
+					})
+	
+					it('产品编号必须唯一', () => {
+						return dbSave(schema, toCreate)
+							.then(() => {
+								return testTarget.create(toCreate)
+							})
+							.should.be.rejectedWith()
+					})
+	
+					it('创建最简单的产品', () => {
+						return testTarget.create({code})
+							.then(doc => {
+								expect(doc).eql({id: doc.id})
+								return schema.findById(doc.id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(doc.code).eql(code)
+							})
+					})
+
+					it('正确创建', () => {
+						return testTarget.create({code, desc, content, constructure, 
+							yarn, spec, grey, tags, creator, remark, state})
+							.then(doc => {
+								expect(doc).eql({id: doc.id})
+								return schema.findById(doc.id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(doc.code).eql(code)
+								expect(doc.desc).eql(desc)
+								expect(doc.content).eql(content)
+								expect(doc.constructure).eql(constructure)
+								expect(doc.yarn).eql(yarn)
+								expect(doc.spec).eql({id: doc.spec.id, ...spec})
+								expect(doc.grey).eql({id: doc.grey.id, ...grey})
+								expect(doc.tags).eql(tags)
+								expect(doc.creator).eql(creator)
+								expect(doc.remark).eql(remark)
+								expect(doc.state).eql(state)
+							})
+					})
+
+					it('创建产品时防止数据注入产品链', () => {
+						return testTarget.create({code, chains:[{}, {}]})
+							.then(doc => {
+								expect(doc).eql({id: doc.id})
+								return schema.findById(doc.id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(doc.code).eql(code)
+								expect(doc.chains.length).eql(0)
+							})
+					})
+				})
+
+				describe('读取', () => {
+					beforeEach(() => {
+						return dbSave(schema, {code, desc, content, constructure, 
+							yarn, spec, grey, tags, creator, remark, state, chains: [{}, {}]})
+							.then(doc => {
+								product = doc
+							})
+					})
+
+					it('正确读取', () => {
+						return testTarget.findById(product.id)
+							.then(doc => {
+								expect(doc).eql({
+									id: product.id,
+									code, desc, content, constructure, 
+									yarn, tags, creator, remark, state,
+									spec: {id: doc.spec.id, ...spec}, 
+									grey: {id: doc.grey.id, ...grey},
+									__v: product.__v,
+									createdAt: product.createdAt,
+									updatedAt: product.updatedAt
+								})
+							})
+					})
 				})
 
 				describe('更新', () => {
-					it('除state字段，其余所有字段均可更新', () => {				
+					it('除state、chains字段，其余所有字段均可更新', () => {				
 						return dbSave(schema, {code: 'the code'})
 							.then(doc => {
 								product = doc
@@ -124,7 +177,7 @@ describe('TexTrade', function () {
 									yarn, spec, grey, tags, creator, remark, state})
 							})
 							.then(() => {
-								return schema.findById(product.id)
+								return schema.findById(product.id, ['-chains'])
 							})
 							.then((doc) => {
 								doc = doc.toJSON()
@@ -140,6 +193,297 @@ describe('TexTrade', function () {
 									updatedAt: doc.updatedAt
 								})
 							})
+					})
+				})
+
+				describe('ProductionChain - 产品链', () => {
+					const desc = 'chain desc',
+							date = new Date(),
+							qty = 10000,
+							fooPart = '5ce79b99da5837277c3f3b66',
+							price = '23.56',
+							feePart = '5ce79b99da5837277c3f3b77',
+							quot = '6ae79b99da5837277c3f3b01',
+							remark = 'chain node remark',
+							parts = [
+								{part: fooPart, price: price, remark},
+								{part: feePart, quots: [{quot}]}
+							],
+							customerRequirement = '67e79b99da5837277c3f3b01',
+							creator = '8be79b99da5837277c3f3b22',
+							tags = 'any tags'
+
+					let chain
+
+					beforeEach(() => {
+						return dbSave(schema, {code})
+							.then(doc => {
+								product = doc
+							})
+					})
+					
+					describe('基于产品查询相关产品链', () => {
+						beforeEach(() => {
+							let row
+							return schema.findById(product.id)
+								.then(doc => {
+									doc.chains = doc.chains || []
+									row = doc.chains.push({date, desc, parts, customerRequirement, qty, creator, tags})
+									return doc.save()
+								})
+								.then(doc => {
+									product = doc
+									chain = doc.chains[row - 1]
+								})
+								.catch(e => {
+									throw e
+								})
+						})
+
+						it('指定产品不存在', () => {
+							return testTarget.listChains(ID_NOT_EXIST)
+								.then((chains) => {
+									expect(chains.length).eql(0)
+								})
+						})
+
+						it('列出产品链', () => {
+							return testTarget.listChains(product.id)
+								.then((chains) => {
+									expect(chains.length).eql(1)
+									expect(chains[0]).eql({
+										id: chains[0].id,
+										date: date.toJSON(),
+										desc, qty, creator, tags
+									})
+								})
+						})
+					})
+
+					describe('创建产品链', () => {
+						it('创建最简单的产品链', () => {
+							return testTarget.createChain(product.id, {})
+								.then(doc => {
+									chain = {product: product.id, id: doc.id}
+									expect(doc).eql(chain)
+									return schema.findById(product.id)
+								})
+								.then(doc => {
+									chain = doc.chains.id(chain.id).toJSON()
+									doc = doc.toJSON()
+									expect(chain.date).exist
+									expect(doc.__v).eql(product.__v + 1)
+									expect(doc.updatedAt).not.eql(product.updatedAt)
+								})
+						})
+
+						it('创建产品链', () => {
+							return testTarget.createChain(product.id, 
+									{date, desc, customerRequirement, qty, creator, tags})
+								.then(doc => {
+									chain = {product: product.id, id: doc.id}
+									expect(doc).eql(chain)
+									return schema.findById(product.id)
+								})
+								.then(doc => {
+									chain = doc.chains.id(chain.id).toJSON()
+									doc = doc.toJSON()
+									expect(chain).eql({
+										id: chain.id,
+										date: date.toJSON(),
+										desc,
+										parts: [],
+										customerRequirement, qty, creator, tags
+									})
+									expect(doc.__v).eql(product.__v + 1)
+									expect(doc.updatedAt).not.eql(product.updatedAt)
+								})
+						})
+					})
+
+					describe('读取产品链', () => {
+						let expectedProductChain
+
+						beforeEach(() => {
+							return schema.findById(product.id)
+								.then(doc => {
+									doc.chains.push({date, desc, parts, customerRequirement, qty, creator, tags})
+									return doc.save()
+								})
+								.then(doc => {
+									product = doc.toJSON()
+									chain = doc.chains[0].toJSON()
+									expectedProductChain = {
+										id: chain.id,
+										date: date.toJSON(),
+										desc,
+										customerRequirement, qty, creator, tags,
+										__v: product.__v
+									}
+								})
+						})
+
+						it('仅提供产品链标识', () => {
+							return testTarget.findChainById(chain.id)
+								.then(doc => {
+									expect(doc).eql(expectedProductChain)
+								})
+						})
+
+						it('仅提供产品链标识, 但指定产品链不存在', () => {
+							return testTarget.findChainById(ID_NOT_EXIST)
+								.then(doc => {
+									expect(doc).not.exist
+								})
+						})
+
+						it('指定产品不存在', () => {
+							return testTarget.findChainById(chain.id, ID_NOT_EXIST)
+								.then(doc => {
+									expect(doc).not.exist
+								})
+						})
+
+						it('指定产品链不存在', () => {
+							return testTarget.findChainById(ID_NOT_EXIST, product.id)
+								.then(doc => {
+									expect(doc).not.exist
+								})
+						})
+
+						it('正确读取', () => {
+							return testTarget.findChainById(chain.id, product.id)
+								.then(doc => {
+									expect(doc).eql(expectedProductChain)
+								})
+						})
+					})
+
+					describe('产品链原料/加工', () => {
+						beforeEach(() => {
+							return schema.findById(product.id)
+								.then(doc => {
+									doc.chains.push({date, desc, parts: [parts[0]], customerRequirement, qty, creator, tags})
+									return doc.save()
+								})
+								.then(doc => {
+									product = doc
+									chain = doc.chains[0]
+								})
+						})
+
+						describe('基于产品链查询其原料/加工列表', () => {
+							it('指定产品不存在', () => {
+								return testTarget.listChainParts(chain.id, ID_NOT_EXIST)
+									.then((parts) => {
+										expect(parts.length).eql(0)
+									})
+							})
+
+							it('指定产品链不存在', () => {
+								return testTarget.listChainParts(ID_NOT_EXIST, product.id)
+									.then((parts) => {
+										expect(parts.length).eql(0)
+									})
+							})
+	
+							it('列出产品链原料/加工', () => {
+								return testTarget.listChainParts(chain.id, product.id)
+									.then((parts) => {
+										expect(parts.length).eql(1)
+										expect(parts[0]).eql({
+											id: parts[0].id,
+											part: fooPart,
+											price: price,
+											remark
+										})
+									})
+							})
+
+							it('列出产品链原料/加工 - 仅指定产品链', () => {
+								return testTarget.listChainParts(chain.id)
+									.then((parts) => {
+										expect(parts.length).eql(1)
+										expect(parts[0]).eql({
+											id: parts[0].id,
+											part: fooPart,
+											price: price,
+											remark
+										})
+									})
+							})
+						})
+
+						describe('为产品链添加原料/加工', () => {
+							let part
+
+							it('未给出产品链的原料/加工', () => {
+								return testTarget.addChainPart(chain.id, {}, product.id)
+									.should.be.rejectedWith()
+							})
+
+							it('添加产品链原料/加工 - 仅指定产品链', () => {
+								return testTarget.addChainPart(chain.id, {part: feePart})
+									.then(doc => {
+										part = {
+											product: product.id,
+											chain: chain.id,
+											id: doc.id
+										}
+										expect(doc).eql(part)
+										return schema.findById(product.id)
+									})
+									.then(doc => {
+										part = doc.chains.id(chain.id).parts.id(part.id).toJSON()
+										expect(part.part).eql(feePart)
+										expect(doc.__v).eql(product.__v + 1)
+										expect(doc.updatedAt).not.eql(product.updatedAt)
+									})
+							})
+
+							it('添加最简单的产品链原料/加工', () => {
+								return testTarget.addChainPart(chain.id, {part: feePart}, product.id)
+									.then(doc => {
+										part = {
+											product: product.id,
+											chain: chain.id,
+											id: doc.id
+										}
+										expect(doc).eql(part)
+										return schema.findById(product.id)
+									})
+									.then(doc => {
+										part = doc.chains.id(chain.id).parts.id(part.id).toJSON()
+										expect(part.part).eql(feePart)
+										expect(doc.__v).eql(product.__v + 1)
+										expect(doc.updatedAt).not.eql(product.updatedAt)
+									})
+							})
+	
+							it('添加产品链原料/加工', () => {
+								const partData = {
+									part: feePart,
+									price, remark
+								}
+								return testTarget.addChainPart(chain.id, partData, product.id)
+									.then(doc => {
+										part = {
+											product: product.id,
+											chain: chain.id,
+											id: doc.id
+										}
+										expect(doc).eql(part)
+										return schema.findById(product.id)
+									})
+									.then(doc => {
+										part = doc.chains.id(chain.id).parts.id(part.id).toJSON()
+										delete part.quots
+										expect(part).eql({id: part.id, ...partData})
+										expect(doc.__v).eql(product.__v + 1)
+										expect(doc.updatedAt).not.eql(product.updatedAt)
+									})
+							})
+						})
 					})
 				})
 			})
@@ -287,7 +631,7 @@ describe('TexTrade', function () {
 					})
 
 					it('创建一最简单的客户', () => {
-						return testTarget.create(toCreate)
+						return testTarget.create({code})
 							.then(doc => {
 								customer = doc
 								expect(doc.code).eql(code)
@@ -324,14 +668,6 @@ describe('TexTrade', function () {
 				})
 				
 				describe('搜索', () => {
-					// 由于采用了finelets框架实现，故此例也可无需测试
-					it('未搜索到任何客户资料', () => {
-						return testTarget.search({}, 'oo')
-							.then(docs => {
-								expect(docs.length).eqls(0)
-							})
-					})
-
 					it('搜索字段包括name, code, address, tags', () => {
 						let data = []
 						data.push(dbSave(schema, {code: 'foo'}))
@@ -473,39 +809,28 @@ describe('TexTrade', function () {
 							.should.be.rejectedWith()
 					})
 
-					it('创建一最简单的原料', () => {
+					it('创建一最简单的原料/加工', () => {
 						return testTarget.create(toCreate)
 							.then(doc => {
-								part = doc
-								expect(doc.type).eql('material')
-								expect(doc.name).eql(name)
 								return schema.findById(doc.id)
 							})
 							.then(doc => {
-								doc = doc.toJSON()
-								expect(doc.type).eql(part.type)
-								expect(doc.name).eql(part.name)
+								expect(doc.type).eql('material')
+								expect(doc.name).eql(name)
 							})
 					})
 
-					it('创建客户', () => {
+					it('创建原料/加工', () => {
 						return testTarget.create({code, type, name, creator, tags})
 							.then(doc => {
-								part = doc
-								expect(doc.code).eql(code)
-								expect(doc.name).eql(name)
-								expect(doc.type).eql(type)
-								expect(doc.creator).eql(creator)
-								expect(doc.tags).eql(tags)
 								return schema.findById(doc.id)
 							})
 							.then(doc => {
-								doc = doc.toJSON()
-								expect(doc.code).eql(part.code)
-								expect(doc.name).eql(part.name)
-								expect(doc.type).eql(part.type)
-								expect(doc.creator).eql(part.creator)
-								expect(doc.tags).eql(part.tags)
+								expect(doc.code).eql(code)
+								expect(doc.name).eql(name)
+								expect(doc.type).eql(type)
+								expect(doc.creator.toString()).eql(creator)
+								expect(doc.tags).eql(tags)
 							})
 					})
 				})

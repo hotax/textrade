@@ -1,5 +1,6 @@
 module.exports = {
     TexTrade: {
+        parts: 'Parts',
         products: 'Products',
         suppliers: 'Suppliers',
         customers: 'Customers',
@@ -13,7 +14,12 @@ module.exports = {
     },
     Supplier: {
         self: "Supplier",
-        collection: "Suppliers"
+        collection: "Suppliers",
+        parts: "SupplierParts"
+    },
+    SupplierParts: {
+        add: 'SupplierParts',
+        supplier: 'Supplier'
     },
     Customers: {
         add: 'Customers',
@@ -32,6 +38,14 @@ module.exports = {
         self: "CustomerQuot",
         collection: "CustomerQuots"
     },
+    Parts: {
+        add: 'Parts',
+        home: 'TexTrade'
+    },
+    Part: {
+        self: "Part",
+        collection: "Parts"
+    },
     Products: {
         add: 'Products',
         home: 'TexTrade'
@@ -39,14 +53,19 @@ module.exports = {
     Product: {
         self: "Product",
         collection: "Products",
-        suppliers: 'ProductSuppliers'
+        chains: "ProductChains"
     },
-    ProductSuppliers: {
+    ProductChains: {
         product: "Product",
-        add: 'ProductSuppliers'
+        add: 'ProductChains'
     },
-    ProductSupplier: {
-        collection: 'ProductSuppliers'
+    ProductChain: {
+        collection: 'ProductChains',
+        product: 'Product',
+        parts: 'ProductChainParts'
+    },
+    ProductChainParts: {
+        add: 'ProductChainParts'
     },
     Users: {
         add: 'RegisterUser',

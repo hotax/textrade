@@ -1,13 +1,11 @@
 /**
  * Created by clx on 2017/10/13.
  */
-const {ifMatch, ifNoneMatch, update, remove, findById} = require('../biz/Product')
+const {ifMatch, ifNoneMatch, update, remove, findById} = require('../biz/Part')
 
 module.exports = {
-    url: '/textrade/api/products/:id',
+    url: '/textrade/api/parts/:id',
     transitions: {
-        ProductChain: {id: 'params.product'},
-        ProductChains: {id: 'params.id'}
     },
     rests: [{
             type: 'read',
