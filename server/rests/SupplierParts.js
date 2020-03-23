@@ -15,7 +15,8 @@ module.exports = {
     },
     rests: [{
             type: 'create',
-            target: 'SupplierPart',
+            target: 'PartQuot',
+            dataRef: {Part: 'part', PartQuots: 'partQuots'},
             handler: (req) => {
                 return entity.create({supplier: req.params.id, ...req.body})
             }

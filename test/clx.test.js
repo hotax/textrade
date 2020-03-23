@@ -891,20 +891,70 @@ describe('TexTrade', function () {
 				})
 
 				describe('创建供应商原料/加工', () => {
-					it('指定供应商原料/加工首次最简单报价', () => {
-						return testTarget.create({supplier, part})
+					
+					it('供应商原料/加工', () => {
+						return testTarget.createSupplierPart({supplier, part})
 							.then(doc => {
-								expect(doc.supplier).eql(supplier)
-								expect(doc.part).eql(part)
-								partQuot = doc
-								return schema.findOne({quots: {$elemMatch: {_id: partQuot.id}}})
+								expect(doc).eql({
+									supplier, part,
+									id: doc.id
+								})
+								return schema.findById(doc.id)
 							})
 							.then(doc => {
 								doc = doc.toJSON()
-								const quot = doc.quots[0]
-								delete doc.quots
-								doc = {PartQuot: doc.id, ...doc, ...quot}
-								expect(doc).eql(partQuot)
+								expect(doc.supplier).eql(supplier)
+								expect(doc.part).eql(part)
+							})
+					})
+
+					it('未给出供应商', () => {
+						return testTarget.createSupplierPart({part})
+							.should.be.rejectedWith()
+					})
+
+					it('未给出原料/加工', () => {
+						return testTarget.createSupplierPart({supplier})
+							.should.be.rejectedWith()
+					})
+
+					it('供应商原料/加工重复', () => {
+						return dbSave(schema, {supplier, part})
+							.then(() => {
+								return testTarget.createSupplierPart({supplier, part})
+							})
+							.should.be.rejectedWith()
+					})
+				})
+
+				describe('供应商原料/加工报价', () => {
+					it('指定供应商原料/加工首次最简单报价', () => {
+						return testTarget.create({supplier, part})
+							.then(doc => {
+								partQuot = doc
+								expect(doc).eql({
+									partQuots: doc.partQuots,
+									supplier, part,
+									id: doc.id,
+									date: doc.date,
+									type: 'inquery',
+									__v: doc.__v,
+									createdAt: doc.createdAt,
+									updatedAt: doc.updatedAt
+								})
+								return schema.findOne({quots: {$elemMatch: {_id: doc.id}}})
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(doc.supplier).eql(supplier)
+								expect(doc.part).eql(part)
+								expect(doc.id).eql(partQuot.partQuots)
+								expect(doc.quots.length).eql(1)
+								expect(doc.quots[0]).eql({
+									id: partQuot.id, 
+									date: partQuot.date,
+									type: partQuot.type
+								})
 							})
 					})
 
@@ -915,25 +965,30 @@ describe('TexTrade', function () {
 								return testTarget.create({supplier, part, date, type, price, ref, remark, tags})
 							})
 							.then(doc => {
-								const expectedDoc = {
-									id: doc.id,
-									PartQuot: partQuot.id,
-									supplier, part, type, price, remark, tags, ref,
-									date: date.toJSON(),
-									__v: partQuot.__v + 1,
-									createdAt: partQuot.createdAt,
-									updatedAt: doc.updatedAt
-								}
-								expect(doc).eql(expectedDoc)
 								partQuot = doc
-								return schema.findOne({quots: {$elemMatch: {_id: partQuot.id}}})
+								expect(doc).eql({
+									partQuots: doc.partQuots,
+									supplier, part,
+									id: doc.id,
+									date: date.toJSON(),
+									type, price, ref, remark, tags,
+									__v: doc.__v,
+									createdAt: doc.createdAt,
+									updatedAt: doc.updatedAt
+								})
+								return schema.findOne({quots: {$elemMatch: {_id: doc.id}}})
 							})
 							.then(doc => {
 								doc = doc.toJSON()
-								const quot = doc.quots[1]
-								delete doc.quots
-								doc = {PartQuot: doc.id, ...doc, ...quot}
-								expect(doc).eql(partQuot)
+								expect(doc.supplier).eql(supplier)
+								expect(doc.part).eql(part)
+								expect(doc.id).eql(partQuot.partQuots)
+								expect(doc.quots.length).eql(2)
+								expect(doc.quots[1]).eql({
+									id: partQuot.id, 
+									date: date.toJSON(),
+									type, price, ref, remark, tags
+								})
 							})
 					})
 				})
@@ -959,7 +1014,7 @@ describe('TexTrade', function () {
 								const {id, __v, createdAt, updatedAt} = partQuot
 								expect(doc).eql({
 									id: partQuot.quots[0].id,
-									PartQuot: id,
+									partQuots: id,
 									supplier, part, 
 									date:date.toJSON(),
 									type, price, ref, remark, tags,
@@ -992,7 +1047,7 @@ describe('TexTrade', function () {
 						fooPart = '6ce79b88da5837277c3f3b81'
 					let inDb
 					beforeEach(() => {
-						let data = []
+						/* let data = []
 						data.push(dbSave(schema, {supplier, part, quots: [{}, {date, type, price}]}))
 						data.push(dbSave(schema, {supplier, part: fooPart}))
 						data.push(dbSave(schema, {supplier: fooSupplier, part}))
@@ -1003,32 +1058,30 @@ describe('TexTrade', function () {
 									delete doc.quots
 									return doc
 								})
-							})
+							}) */
 					})
 
 					it('指定供应商查询其原料/加工', () => {
-						return testTarget.searchBySupplier(supplier)
+						return dbSave(schema, {supplier, part})
+							.then(doc => {
+								id = doc.id
+								return testTarget.searchBySupplier(supplier)
+							})
 							.then(docs => {
-								expect(docs.length).eql(2)
-								expect(__.every(docs, (doc) => {
-									expect(doc.supplier).eql(supplier)
-									expect(doc.quots).not.exist
-									expect(inDb).deep.include(doc)
-									return true
-								}))
+								expect(docs.length).eql(1)
+								expect(docs[0]).eql({id, supplier, part})
 							})
 					})
 
 					it('指定原料/加工查询其供应商', () => {
-						return testTarget.searchByPart(part)
+						return dbSave(schema, {supplier, part})
+							.then(doc => {
+								id = doc.id
+								return testTarget.searchByPart(part)
+							})
 							.then(docs => {
-								expect(docs.length).eql(2)
-								expect(__.every(docs, (doc) => {
-									expect(doc.part).eql(part)
-									expect(doc.quots).not.exist
-									expect(inDb).deep.include(doc)
-									return true
-								}))
+								expect(docs.length).eql(1)
+								expect(docs[0]).eql({id, supplier, part})
 							})
 					})
 

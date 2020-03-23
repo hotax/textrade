@@ -10,7 +10,7 @@ const config = {
 }
 
 const searchBy = (cond) => {
-    return schema.find(cond, ['-quots'])
+    return schema.find(cond, ['supplier', 'part'])
         .then(docs => {
             return __.map(docs, (doc) => {
                 return doc.toJSON()
@@ -19,6 +19,14 @@ const searchBy = (cond) => {
 }
 
 const addIn = {
+    createSupplierPart: (data) => {
+        return new schema(data).save()
+            .then(doc => {
+                doc = doc.toJSON()
+                return {id: doc.id, supplier: doc.supplier, part: doc.part}
+            })
+    },
+
     create: (data) => {
         let row
         const {supplier, part} = data
@@ -26,24 +34,22 @@ const addIn = {
             .then(doc => {
                 if(!doc) {
                     row = 1
-                    return new schema({...data, quots: [{...data, date: data.date || new Date()}]}).save()
+                    return new schema({...data, quots: [{...data}]}).save()
                 }
                 else {
-                    row = doc.quots.push({...data, date: data.date || new Date()})
+                    row = doc.quots.push({...data})
                     return doc.save()
                 }
             })            
             .then(doc => {
                 doc = doc.toJSON()
-                const quot = doc.quots[row - 1]
+                const {__v, createdAt, updatedAt} = doc
                 return {
-                    PartQuot: doc.id,
+                    partQuots: doc.id,
                     supplier: doc.supplier,
                     part: doc.part,
-                    ...quot,
-                    __v: doc.__v,
-                    createdAt: doc.createdAt,
-                    updatedAt: doc.updatedAt
+                    ...doc.quots[row - 1],
+                    __v, createdAt, updatedAt
                 }
             })
     },
@@ -91,7 +97,7 @@ const addIn = {
                 const quot = doc.quots.id(subid).toJSON()
                 doc = doc.toJSON()
                 delete doc.quots
-                return {PartQuot: doc.id, ...doc, ...quot}
+                return {partQuots: doc.id, ...doc, ...quot}
             })
     },
 

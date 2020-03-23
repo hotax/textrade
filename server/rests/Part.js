@@ -7,7 +7,9 @@ module.exports = {
     url: '/textrade/api/parts/:id',
     transitions: {
         PartQuot: {id: 'context'},
-        SupplierPart: {id: 'context'}
+        PartQuots: {id: 'context'},
+        SupplierPart: {id: 'context'},
+        SupplierParts: {id: 'context'}
     },
     rests: [{
             type: 'read',

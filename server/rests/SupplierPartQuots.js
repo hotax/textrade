@@ -16,9 +16,13 @@ module.exports = {
     },
     rests: [{
             type: 'create',
-            target: 'SupplierPart',
+            target: 'PartQuot',
             handler: (req) => {
-                return entity.create({supplier: req.params.id, ...req.body})
+                return entity.create({
+                    supplier: req.params.supplier,
+                    part: req.params.part,
+                    ...req.body
+                })
             }
         },
         {

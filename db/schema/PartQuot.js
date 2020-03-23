@@ -4,7 +4,7 @@ const createSchema = require('@finelets/hyper-rest/db/mongoDb/CreateSchema'),
     ObjectId = mongoose.Schema.Types.ObjectId
 
 const quotSchema = createSchema({
-    date: Date,
+    date: {type: Date, default: new Date()},
     type: {
         type: String,
         default: 'inquery',
@@ -22,7 +22,13 @@ const partQuotSchema = createCollection({
         supplier: {type: ObjectId, required: true},
         part: {type: ObjectId, required: true},
         quots: [quotSchema]
-    }
+    },
+    indexes: [
+        {
+            index: {supplier: 1, part: 1},
+            options: {unique: true}
+        }
+    ]
 })
 
 module.exports = partQuotSchema
