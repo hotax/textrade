@@ -315,6 +315,7 @@ describe('TexTrade', function () {
 									chain = doc.chains[0].toJSON()
 									expectedProductChain = {
 										id: chain.id,
+										product: product.id,
 										date: date.toJSON(),
 										desc,
 										customerRequirement, qty, creator, tags,
@@ -481,6 +482,30 @@ describe('TexTrade', function () {
 										expect(part).eql({id: part.id, ...partData})
 										expect(doc.__v).eql(product.__v + 1)
 										expect(doc.updatedAt).not.eql(product.updatedAt)
+									})
+							})
+						})
+
+						describe('读取产品链原料/加工', () => {
+							it('给出产品链原料/加工不存在', () => {
+								return testTarget.findProductChainPartById(ID_NOT_EXIST)
+									.then(doc => {
+										expect(doc).not.exist
+									})
+							})
+
+							it('仅给出产品链原料/加工标识', () => {
+								return testTarget.findProductChainPartById(chain.parts[0].id)
+									.then(doc => {
+										const {id, __v, createdAt, updatedAt} = product.toJSON()
+										expect(doc).eql({
+											product: id,
+											chain: chain.id,
+											id: chain.parts[0].id,
+											part: fooPart,
+											price, remark,
+											__v, createdAt, updatedAt
+										})
 									})
 							})
 						})

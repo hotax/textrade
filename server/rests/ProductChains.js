@@ -12,7 +12,7 @@ const list = function (query) {
 module.exports = {
     url: '/textrade/api/products/:id/chains',
     transitions: {
-        ProductChain: {id: 'params.product'},
+        ProductChain: {id: 'context.product'},
         ProductChains: {id: 'params.id'}
     },
     rests: [{

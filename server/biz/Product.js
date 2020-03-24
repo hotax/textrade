@@ -68,6 +68,7 @@ const addIn = {
 					chain = chain.toJSON()
 					delete chain.parts
 					return {
+						product: product.id,
 						...chain,
 						__v: product.__v
 					}
@@ -112,6 +113,38 @@ const addIn = {
 				id = doc.chains.id(chainId).parts[row - 1].id
 				return {product: productId, chain: chainId, id}
 			})
+	},
+
+	findProductChainPartById: (chainPartId) => {
+		return schema.findOne({
+			chains: {
+				$elemMatch: {
+					parts: {
+						$elemMatch: {
+							_id: chainPartId
+						}
+					}
+				}
+			}
+		})
+		.then(doc => {
+			if(!doc) return
+			doc = doc.toJSON()
+			let part
+			const chain = __.find(doc.chains, (ch) => {
+				part = __.findWhere(ch.parts, {id: chainPartId})
+				return part
+			})
+			const {id, __v, createdAt, updatedAt} = doc
+			delete part.quots
+			const result = {
+				product: id,
+				chain: chain.id,
+				...part,
+				__v, createdAt, updatedAt
+			}
+			return result
+		})
 	}
 }
 

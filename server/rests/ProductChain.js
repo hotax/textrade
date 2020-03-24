@@ -5,15 +5,13 @@ const read = function (id, {product}) {
 }
 
 module.exports = {
-    url: '/textrade/api/products/:product/chains/:id',
+    url: '/textrade/api/products/chains/:id',
     transitions: {
-        ProductChains: {product: 'params.id', id: 'context.id'}
+        ProductChainPart: {id: 'context'}
     },
     rests: [{
             type: 'read',
-            dataRef: {
-                User: 'creator'
-            },
+            dataRef: {User: 'creator'},
             handler: read
         }
     ]

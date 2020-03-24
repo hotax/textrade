@@ -12,6 +12,7 @@ const list = function ({id, product}) {
 module.exports = {
     url: '/textrade/api/products/:product/chains/:id/parts',
     transitions: {
+        ProductChain: {product: 'context.product', id: 'params.id'}
     },
     rests: [{
             type: 'create',

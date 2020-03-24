@@ -9,7 +9,8 @@ module.exports = {
         PartQuot: {id: 'context'},
         PartQuots: {id: 'context'},
         SupplierPart: {id: 'context'},
-        SupplierParts: {id: 'context'}
+        SupplierParts: {id: 'context'},
+        ProductChainPart: {id: 'context'}
     },
     rests: [{
             type: 'read',
