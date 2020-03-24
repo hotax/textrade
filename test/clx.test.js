@@ -1047,18 +1047,7 @@ describe('TexTrade', function () {
 						fooPart = '6ce79b88da5837277c3f3b81'
 					let inDb
 					beforeEach(() => {
-						/* let data = []
-						data.push(dbSave(schema, {supplier, part, quots: [{}, {date, type, price}]}))
-						data.push(dbSave(schema, {supplier, part: fooPart}))
-						data.push(dbSave(schema, {supplier: fooSupplier, part}))
-						data.push(dbSave(schema, {supplier: fooSupplier, part: fooPart}))
-						return Promise.all(data)
-							.then(docs => {
-								inDb = __.map(docs, (doc) => {
-									delete doc.quots
-									return doc
-								})
-							}) */
+						
 					})
 
 					it('指定供应商查询其原料/加工', () => {
@@ -1087,14 +1076,21 @@ describe('TexTrade', function () {
 
 					it('查询报价', () => {
 						let execs = []
-						execs.push(schema.findOne({supplier, part}))
-						execs.push(testTarget.listQuots(supplier, part))
+						execs.push(dbSave(schema, {supplier, part, quots: [{}, {date, type, price}]}))
+						execs.push(dbSave(schema, {supplier, part: fooPart}))
+						execs.push(dbSave(schema, {supplier: fooSupplier, part}))
+						execs.push(dbSave(schema, {supplier: fooSupplier, part: fooPart}))
 						return Promise.all(execs)
+							.then(docs => {
+								execs = []
+								execs.push(schema.findOne({supplier, part}))
+								execs.push(testTarget.listQuots(supplier, part))
+								return Promise.all(execs)
+							})
 							.then(results => {
 								partQuot = results[0].toJSON()
-								const {id, __v, createdAt, updatedAt} = partQuot
-								expect(results[1][0]).eql({PartQuot: id, supplier, part, ...partQuot.quots[0], __v, createdAt, updatedAt})
-								expect(results[1][1]).eql({PartQuot: id, supplier, part, ...partQuot.quots[1], __v, createdAt, updatedAt})
+								expect(results[1][0]).eql({supplier, part, ...partQuot.quots[0]})
+								expect(results[1][1]).eql({supplier, part, ...partQuot.quots[1]})
 							})
 					})
 
