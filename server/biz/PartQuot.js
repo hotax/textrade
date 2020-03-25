@@ -106,6 +106,13 @@ const addIn = {
             .then(doc => {
                 return doc ? doc.toJSON() : doc
             })
+    },
+
+    checkQuotPart: (partId, quotId) => {
+        return schema.findOne({quots: {$elemMatch: {_id: quotId}}})
+        .then(doc => {
+            return doc && doc.part.toString() == partId.toString()
+        })
     }
 }
 

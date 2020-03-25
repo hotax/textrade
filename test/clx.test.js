@@ -36,6 +36,7 @@ describe('TexTrade', function () {
 
 				beforeEach(() => {
 					toCreate = {code}
+					checkQuotPart = sinon.stub()
 					schema = require('../db/schema/Product')
 					testTarget = require('../server/biz/Product')
 				})
@@ -507,6 +508,70 @@ describe('TexTrade', function () {
 											__v, createdAt, updatedAt
 										})
 									})
+							})
+						})
+
+						describe('产品链原料/加工报价', () => {
+							let checkPartQuot
+
+							beforeEach(() => {
+								checkPartQuot = sinon.stub()
+								testTarget = require('../server/biz/ProductChainQuots')(checkPartQuot)
+							})
+
+							describe('基于产品链原料/加工查询其报价列表', () => {
+								beforeEach(() => {
+									chain.parts.push(parts[1])
+									return product.save()
+										.then(doc => {
+											product = doc
+											chain = doc.chains[0]
+										})
+								})
+
+								it('给出产品链原料/加工不存在', () => {
+									return testTarget.listQuots(ID_NOT_EXIST)
+										.then(docs => {
+											expect(docs.length).eql(0)
+										})
+								})
+
+								it('正确列出', () => {
+									return testTarget.listQuots(chain.parts[1].id)
+										.then(docs => {
+											expect(docs.length).eql(1)
+											expect(docs[0]).eql({quot})
+										})
+								})
+							})
+
+							describe('为产品链原料/加工添加报价', () => {
+								it('重复报价', () => {
+									checkPartQuot.withArgs(feePart, quot).resolves(true)
+									chain.parts.push(parts[1])
+									return product.save()
+										.then(doc => {
+											product = doc
+											chain = doc.chains[0]
+											return testTarget.addQuot(chain.parts[1].id, {quot})
+										})
+										.should.be.rejectedWith()
+								})
+
+								it('正确报价', () => {
+									checkPartQuot.withArgs(fooPart, quot).resolves(true)
+									return testTarget.addQuot(chain.parts[0].id, {quot})
+										.then(doc => {
+											expect(doc).eql({quot})
+										})
+								})
+
+								it('报价原料/加工与产品链原料/加工不一致', () => {
+									checkPartQuot.withArgs(fooPart, quot).resolves(false)
+									return testTarget.addQuot(chain.parts[0].id, {quot})
+										.should.be.rejectedWith()
+								})
+
 							})
 						})
 					})
@@ -1071,8 +1136,7 @@ describe('TexTrade', function () {
 					const fooSupplier = '6ce79b88da5837277c3f3b80',
 						fooPart = '6ce79b88da5837277c3f3b81'
 					let inDb
-					beforeEach(() => {
-						
+					beforeEach(() => {						
 					})
 
 					it('指定供应商查询其原料/加工', () => {
@@ -1123,6 +1187,23 @@ describe('TexTrade', function () {
 						return testTarget.listQuots(supplier, ID_NOT_EXIST)
 							.then(docs => {
 								expect(docs.length).eql(0)
+							})
+					})
+
+					it('报价原料/加工与指定原料/加工一致', () => {
+						let partId, quotId
+						return dbSave(schema, {supplier, part, quots: [{}]})
+							.then(doc => {
+								partId = doc.part
+								quotId = doc.quots[0].id
+								return testTarget.checkQuotPart(partId, quotId)
+							})
+							.then(ok => {
+								expect(ok).true
+								return testTarget.checkQuotPart(ID_NOT_EXIST, quotId)
+							})
+							.then(ok => {
+								expect(ok).false
 							})
 					})
 				})
