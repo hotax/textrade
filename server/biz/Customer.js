@@ -83,6 +83,16 @@ const addIn = {
 				return doc.save()
 			}
 		})
+	},
+
+	ifMatchRequirement: (requirement, version) => {
+		return entity.ifMatch({
+			requirements: {
+				$elemMatch: {
+					_id: requirement
+				}
+			}
+		}, version)
 	}
 }
 

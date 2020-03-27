@@ -16,7 +16,8 @@ module.exports = {
         Product: {id: 'context'},
         ProductChain: {id: 'context'},
         Customer: {id: 'context'},
-        Supplier: {id: 'context'}
+        Supplier: {id: 'context'},
+        CustomerRequirement: {id: 'context'}
     },
     rests: [{
             type: 'read',

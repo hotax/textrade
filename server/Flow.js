@@ -36,15 +36,16 @@ module.exports = {
     Customer: {
         self: "Customer",
         collection: "Customers",
-        quots: 'CustomerQuots'
+        requirements: 'CustomerRequirements'
     },
-    CustomerQuots: {
-        add: 'CustomerQuots',
-        home: 'TexTrade'
+    CustomerRequirements: {
+        add: 'CustomerRequirements',
+        customer: 'Customer'
     },
-    CustomerQuot: {
-        self: "CustomerQuot",
-        collection: "CustomerQuots"
+    CustomerRequirement: {
+        self: "CustomerRequirement",
+        collection: "CustomerRequirements",
+        customer: 'Customer'
     },
     Parts: {
         add: 'Parts',

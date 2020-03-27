@@ -925,6 +925,20 @@ describe('TexTrade', function () {
 						})
 					})
 
+					it('IF-Match', () => {
+						return schema.findById(id)
+								.then(doc => {
+									doc.requirements.push({requirement})
+									return doc.save()
+								})
+								.then(doc => {
+									customer = doc
+									return testTarget.ifMatchRequirement(doc.requirements[0].id, 1)
+								})
+								.then(match => {
+									expect(match).true
+								})
+					})
 					describe('读取', () => {
 						it('正确读取客户需求', () => {
 							return schema.findById(id)
