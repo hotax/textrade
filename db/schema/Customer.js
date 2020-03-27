@@ -1,9 +1,19 @@
 const mongoose = require('mongoose'),
     ObjectId = mongoose.Schema.Types.ObjectId,
     createCollection = require('@finelets/hyper-rest/db/mongoDb/CreateCollection'),
-    requirementSchema = require('./Requirement'),
-    contactSchema = require('./Contact'),
-    quotSchema = require('./Quot')
+    createSchema = require('@finelets/hyper-rest/db/mongoDb/CreateSchema')
+
+const contactSchema = createSchema({
+    name: {type: String, required: true},
+    phone: String,
+    email: String
+})
+
+const requirementSchema = createSchema({
+    requirement: {type: String, required: true},
+    date: {type: Date, default: new Date()},
+    creator: ObjectId
+})
 
 const dbModel = createCollection({
     name: 'Customer',
@@ -15,8 +25,7 @@ const dbModel = createCollection({
         creator: ObjectId,
         tags: String,
         requirements: [requirementSchema],
-        contacts: [contactSchema],
-        quots: [quotSchema] // TODO: to be removed later
+        contacts: [contactSchema]
     }
 })
 

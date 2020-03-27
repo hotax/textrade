@@ -3,7 +3,7 @@ const schema = require('../../db/schema/Employee'),
 
 const config = {
     schema,
-    projection: '-password',
+    projection: {password: 0},
     updatables: ['userId', 'name', 'pic', 'email'],
     searchables: ['userId', 'name', 'email'],
     listable: 'name',

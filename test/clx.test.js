@@ -723,59 +723,41 @@ describe('TexTrade', function () {
 					it('创建一最简单的客户', () => {
 						return testTarget.create({code})
 							.then(doc => {
-								customer = doc
-								expect(doc.code).eql(code)
+								expect(doc).eql({
+									id: doc.id,
+									code
+								})
 								return schema.findById(doc.id)
 							})
 							.then(doc => {
 								doc = doc.toJSON()
-								expect(doc.code).eql(customer.code)
+								expect(doc.code).eql(code)
 							})
 					})
 
 					it('创建客户', () => {
 						return testTarget.create({code, name, address, link, creator, tags})
 							.then(doc => {
-								customer = doc
+								expect(doc).eql({
+									id: doc.id,
+									code, name, address, link, creator, tags
+								})
+								return schema.findById(doc.id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
 								expect(doc.code).eql(code)
 								expect(doc.name).eql(name)
 								expect(doc.address).eql(address)
 								expect(doc.link).eql(link)
 								expect(doc.creator).eql(creator)
 								expect(doc.tags).eql(tags)
-								return schema.findById(doc.id)
-							})
-							.then(doc => {
-								doc = doc.toJSON()
-								expect(doc.code).eql(customer.code)
-								expect(doc.name).eql(customer.name)
-								expect(doc.address).eql(customer.address)
-								expect(doc.link).eql(customer.link)
-								expect(doc.creator).eql(customer.creator)
-								expect(doc.tags).eql(customer.tags)
 							})
 					})
 				})
 				
 				describe('搜索', () => {
 					it('搜索字段包括name, code, address, tags', () => {
-						let data = []
-						data.push(dbSave(schema, {code: 'foo'}))
-						data.push(dbSave(schema, {code: '01', name: 'foo'}))
-						data.push(dbSave(schema, {code: '02', address: 'foo'}))
-						data.push(dbSave(schema, {code: '03', tags: 'foo'}))
-						data.push(dbSave(schema, {code: '04', link: 'foo'}))
-						return Promise.all(data)
-							.then(() => {
-								return testTarget.search({}, 'oo')
-							})
-							.then(data => {
-								expect(data.length).eqls(4)
-							})
-					})
-
-					// 由于采用了finelets框架实现，故此例也可无需测试
-					it('附带查询条件', () => {
 						let data = []
 						data.push(dbSave(schema, {code: 'foo'}))
 						data.push(dbSave(schema, {code: '01', name: 'goo', tags: 'abc'}))
@@ -791,6 +773,37 @@ describe('TexTrade', function () {
 								expect(data.length).eqls(2)
 							})
 					})
+
+					it('查询结果不包含联系人、需求列表和__v字段', () => {
+						return dbSave(schema, {code, name, address, link, creator, tags})
+							.then((doc) => {
+								customer = doc
+								return testTarget.search({}, 'oo')
+							})
+							.then(docs => {
+								expect(docs.length).eqls(1)
+								expect(docs[0]).eqls({
+									code, name, address, link, creator, tags,
+									...__.pick(customer, 'id', 'createdAt', 'updatedAt')
+								})
+							})
+					})
+				})
+
+				describe('读取', () => {
+					it('读取客户时不包括联系人、需求列表字段', () => {
+						return dbSave(schema, {code, name, address, link, creator, tags})
+							.then(doc => {
+								customer = doc
+								return testTarget.findById(doc.id)
+							})
+							.then(doc => {
+								expect(doc).eql({
+									code, name, address, link, creator, tags,
+									...__.pick(customer, 'id', '__v', 'createdAt', 'updatedAt')
+								})
+							})
+					})
 				})
 
 				describe('更新', () => {
@@ -801,7 +814,7 @@ describe('TexTrade', function () {
 								__v = doc.__v
 								return testTarget.update({id, __v, code, name, address, link, creator, tags})
 							})
-							.then(doc => {
+							.then(() => {
 								return schema.findById(id)
 							})
 							.then(doc => {
@@ -823,57 +836,195 @@ describe('TexTrade', function () {
 					let customerRequirement
 	
 					beforeEach(() => {
-						testTarget = require('../server/biz/CustomerRequirement')
 						return dbSave(schema, toCreate)
 							.then(doc => {
-								customer = doc.id
+								id = doc.id
 							})
 					})
 	
 					describe('创建', () => {
-						it('Customer is invalid ObjectId', () => {
-							return testTarget.create('abc')
-								.should.be.rejectedWith()
-						})
-		
-						it('Customer is not found', () => {
-							return testTarget.create(ID_NOT_EXIST)
+						it('指定客户不存在', () => {
+							return testTarget.createRequirement(ID_NOT_EXIST)
 								.then(doc => {
 									expect(doc).not.exist
 								})
 						})
+
+						it('必须给出需求说明', () => {
+							return testTarget.createRequirement(id, {})
+								.should.be.rejectedWith()
+						})
 		
 						it('创建一最简单的客户需求', () => {
-							return testTarget.create(customer, {})
+							return testTarget.createRequirement(id, {requirement})
 								.then(doc => {
 									customerRequirement = doc
-									expect(customerRequirement.Customer).eql(customer)
-									expect(customerRequirement.date).exist
-									return schema.findById(customer)
+									expect(doc).eql({
+										id: doc.id,
+										customer: id,
+										date: doc.date,
+										requirement
+									})
+									return schema.findById(id)
 								})
 								.then(doc => {
 									doc = doc.toJSON()
-									expect(doc.requirements[0].id).eql(customerRequirement.id)
-									expect(doc.requirements[0].date).eql(customerRequirement.date)
+									expect(doc.requirements[0]).eql(
+										__.pick(customerRequirement, 'id', 'requirement', 'date')
+									)
 								})
 						})
 		
 						it('创建客户需求', () => {
-							return testTarget.create(customer, {date, requirement, creator})
+							return testTarget.createRequirement(id, {date, requirement, creator})
 								.then(doc => {
 									customerRequirement = doc
-									expect(customerRequirement.Customer).eql(customer)
-									expect(customerRequirement.requirement).eql(requirement)
-									expect(customerRequirement.date).eql(date.toJSON())
-									expect(customerRequirement.creator).eql(creator)
-									return schema.findById(customer)
+									expect(doc).eql({
+										id: doc.id,
+										customer: id,
+										date: date.toJSON(),
+										requirement, creator
+									})
+									return schema.findById(id)
 								})
 								.then(doc => {
 									doc = doc.toJSON()
-									expect(doc.requirements[0].id).eql(customerRequirement.id)
-									expect(doc.requirements[0].date).eql(customerRequirement.date)
-									expect(doc.requirements[0].requirement).eql(customerRequirement.requirement)
-									expect(doc.requirements[0].creator).eql(customerRequirement.creator)
+									expect(doc.requirements[0]).eql(
+										__.pick(customerRequirement, 'id', 'requirement', 'date', 'creator')
+									)
+								})
+						})
+					})
+
+					describe('列出客户需求', () => {
+						beforeEach(() => {
+							return schema.findById(id)
+								.then(doc => {
+									doc.requirements.push({requirement, date, creator})
+									return doc.save()
+								})
+						})
+
+						it('指定客户不存在', () => {
+							return testTarget.listRequirements(ID_NOT_EXIST)
+								.then((docs) => {
+									expect(docs.length).eql(0)
+								})
+						})
+
+						it('正确列出', () => {
+							return testTarget.listRequirements(id)
+								.then(docs => {
+									expect(docs.length).eql(1)
+									expect(docs[0]).eql({
+										id: docs[0].id,
+										date: date.toJSON(),
+										requirement, creator
+									})
+								})
+						})
+					})
+
+					describe('读取', () => {
+						it('正确读取客户需求', () => {
+							return schema.findById(id)
+								.then(doc => {
+									doc.requirements.push({date, requirement, creator})
+									return doc.save()
+								})
+								.then(doc => {
+									customer = doc
+									return testTarget.findRequirementById(doc.requirements[0].id)
+								})
+								.then(doc => {
+									expect(doc).eql({
+										id: customer.requirements[0].id,
+										customer: customer.id,
+										date: date.toJSON(),
+										requirement, creator,
+										...__.pick(customer.toJSON(), '__v', 'updatedAt')
+									})
+								})
+						})
+					})
+
+					describe('更新', () => {
+						it('删除creator字段值', () => {
+							return schema.findById(id)
+								.then(doc => {
+									doc.requirements.push({requirement: 'any', creator})
+									return doc.save()
+								})
+								.then(doc => {
+									customer = doc
+									return testTarget.updateRequirement(doc.requirements[0].id, 
+										{__v: customer.__v, date, requirement})
+								})
+								.then(doc => {
+									expect(doc).exist
+									return schema.findById(id)
+								})
+								.then(doc => {
+									doc = doc.toJSON()
+									expect(doc.__v).eql(customer.__v + 1)
+									expect(__.pick(doc.requirements[0], 'date', 'requirement')).eql({
+										date: date.toJSON(),
+										requirement
+									})
+									expect(doc.requirements[0].creator).not.exist
+								})
+						})
+
+						it('更新客户需求', () => {
+							return schema.findById(id)
+								.then(doc => {
+									doc.requirements.push({requirement: 'any'})
+									return doc.save()
+								})
+								.then(doc => {
+									customer = doc
+									return testTarget.updateRequirement(doc.requirements[0].id, 
+										{__v: customer.__v, date, requirement, creator})
+								})
+								.then(doc => {
+									expect(doc).exist
+									return schema.findById(id)
+								})
+								.then(doc => {
+									doc = doc.toJSON()
+									expect(doc.__v).eql(customer.__v + 1)
+									expect(__.pick(doc.requirements[0], 'date', 'requirement', 'creator')).eql({
+										date: date.toJSON(),
+										requirement, creator
+									})
+								})
+						})
+					})
+
+					describe('删除', () => {
+						it('指定客户需求不存在', () => {
+							return testTarget.removeRequirement(ID_NOT_EXIST)
+								.then((doc) => {
+									expect(doc).not.exist
+								})
+						})
+
+						it('删除客户需求', () => {
+							return schema.findById(id)
+								.then(doc => {
+									doc.requirements.push({requirement: 'any'})
+									return doc.save()
+								})
+								.then(doc => {
+									customer = doc
+									return testTarget.removeRequirement(doc.requirements[0].id)
+								})
+								.then((doc) => {
+									expect(doc).exist
+									return schema.findById(id)
+								})
+								.then(doc => {
+									expect(doc.requirements.length).eql(0)
 								})
 						})
 					})
@@ -1565,253 +1716,8 @@ describe('TexTrade', function () {
 								expect(doc.password).eql('new 1234');
 								expect(doc.__v).eql(__v);
 							})
-
-					})
-
-				})
-			})
-
-			describe('Quots - 报价', () => {
-				const requirement = 'customer requirment'
-				let customer
-
-				beforeEach(() => {
-					toCreate = {code}
-					schema = require('../db/schema/Customer')
-					testTarget = require('../server/biz/Customer')
-					return dbSave(schema, toCreate)
-						.then(doc => {
-							customer = doc.id
-						})
-				})
-
-				describe('报价', () => {
-					let quot
-
-					it('Customer is invalid ObjectId', () => {
-						return testTarget.quot({customer: 'abc'})
-							.should.be.rejectedWith()
-					})
-	
-					it('Customer is not found', () => {
-						return testTarget.quot({customer: ID_NOT_EXIST})
-							.then(doc => {
-								expect(doc).not.exist
-							})
-					})
-	
-					it('create a simplest quot', () => {
-						return testTarget.quot({customer, requirement})
-							.then(doc => {
-								quot = doc
-								expect(quot.Customer).eql(customer)
-								expect(quot.requirement).eql(requirement)
-								expect(quot.date).exist
-								return schema.findById(customer)
-							})
-							.then(doc => {
-								doc = doc.toJSON()
-								expect(quot.id).eql(doc.quots[0].id)
-								expect(quot.requirement).eql(doc.quots[0].requirement)
-								expect(quot.date).eql(doc.quots[0].date)
-							})
-					})
-	
-					it('create a full data quot', () => {
-						const date = new Date(),
-						creator = '5de79b77da3537277c3f3b88',
-						product = '67879b77da3537277c3f3b88',
-						supplier = '77879b77da3537277c3f3b99',
-						price = 23.45,
-						remark = 'any remark'
-						return testTarget.quot(
-												{
-													customer,
-													date,
-													requirement,
-													items: [
-														{product, supplier, date, price, remark},
-														{product, supplier, date, price, remark}
-													],
-													creator
-												}
-											)
-							.then(doc => {
-								quot = doc
-								expect(quot.requirement).eql(requirement)
-								expect(quot.date).eql(date.toJSON())
-								expect(quot.creator).eql(creator)
-								expect(quot.items[0]).eql({id: quot.items[0].id, product, supplier, date: date.toJSON(), price, remark})
-								expect(quot.items[1]).eql({id: quot.items[1].id, product, supplier, date: date.toJSON(), price, remark})
-								return schema.findById(customer)
-							})
-							.then(doc => {
-								doc = doc.toJSON()
-								expect(quot.id).eql(doc.quots[0].id)
-								expect(customer).eql(doc.id)
-								expect(requirement).eql(doc.quots[0].requirement)
-								expect(date.toJSON()).eql(doc.quots[0].date)
-								expect(creator).eql(doc.quots[0].creator)
-								expect(doc.quots[0].items[0]).eql({id: doc.quots[0].items[0].id, product, supplier, date: date.toJSON(), price, remark})
-								expect(doc.quots[0].items[1]).eql({id: doc.quots[0].items[1].id, product, supplier, date: date.toJSON(), price, remark})
-							})
 					})
 				})
-
-				describe('查询报价', () => {
-					const date = new Date(),
-					creator = '5de79b77da3537277c3f3b88',
-					product = '67879b77da3537277c3f3b88',
-					supplier = '77879b77da3537277c3f3b99',
-					price = 23.45,
-					remark = 'any remark'
-
-					let custDoc
-					beforeEach(() => {
-						return schema.findById(customer)
-							.then(doc => {
-								doc.quots.push({
-									date,
-									requirement,
-									creator
-								})
-								doc.quots.push({
-									date,
-									requirement,
-									items: [
-										{product, supplier, date, price, remark},
-										{product, supplier, date, price, remark}
-									],
-									creator
-								})
-								return doc.save()
-							})
-							.then(doc => {
-								custDoc = doc.toJSON()
-							})
-					})
-
-					it('非法查询类型', () => {
-						return testTarget.searchQuots({customer, type: 'unknown'})
-							.then(docs => {
-								expect(docs.length).eql(0)
-							})
-					})
-
-					it('查询时发生任何错误时返回空数据集', () => {
-						return testTarget.searchQuots({customer: 'abc'})
-							.then(docs => {
-								expect(docs.length).eql(0)
-							})
-					})
-
-					it('查询客户需求及相关产品供应商报价', () => {
-						return testTarget.searchQuots({customer})
-							.then(docs => {
-								expect(docs.length).eql(2)
-								expect(docs[0]).eql({
-									id: custDoc.quots[0].id,
-									date: date.toJSON(),
-									requirement,
-									creator,
-									items: []
-								})
-								expect(docs[1]).eql({
-									id: custDoc.quots[1].id,
-									date: date.toJSON(),
-									requirement,
-									creator,
-									items: [
-										{
-											id: custDoc.quots[1].items[0].id,
-											date: date.toJSON(),
-											product, supplier, price, remark
-										},
-										{
-											id: custDoc.quots[1].items[1].id,
-											date: date.toJSON(),
-											product, supplier, price, remark
-										}
-									]
-								})
-							})
-					})
-
-					/* it('查询供应商产品报价-CustomerQuot形式返回', () => {
-						return testTarget.searchQuots({supplier, type: testTarget.constDef.QUERY_TYPE_SUPPLIER_QUOTS})
-							.then(docs => {
-								expect(docs).eql([
-									{
-										customer: custDoc.id,
-										id: custDoc.quots[1].id,
-										requirement,
-										date: data.toJSON(),
-										creator,
-										items: [{
-											id: custDoc.quots[1].items[0].id,
-											date: date.toJSON(),
-											product, price, remark
-										},
-										{
-											id: custDoc.quots[1].items[1].id,
-											date: date.toJSON(),
-											product, price, remark
-										}]
-									}
-								])
-							})
-					}) */
-
-					it('查询供应商产品报价', () => {
-						return testTarget.searchQuots({supplier, type: testTarget.constDef.QUERY_TYPE_SUPPLIER_QUOTS})
-							.then(docs => {
-								expect( docs.length).eql(1)
-								expect(docs[0]).eql({
-									product,
-									customers: [{
-										customer: custDoc.id,
-										quots: [
-											{
-												id: custDoc.quots[1].items[0].id,
-												date: date.toJSON(),
-												price, remark,
-												quot: custDoc.quots[1].id
-											},
-											{
-												id: custDoc.quots[1].items[1].id,
-												date: date.toJSON(),
-												price, remark,
-												quot: custDoc.quots[1].id
-											}
-										]
-									}]})
-							})
-					})
-
-					it('查询产品客户供应商报价', () => {
-						return testTarget.searchQuots({product, type: testTarget.constDef.QUERY_TYPE_PRODUCT_QUOTS})
-							.then(docs => {
-								expect( docs.length).eql(1)
-								expect(docs[0]).eql({
-									supplier, customer,
-									quots: [
-										{
-											id: custDoc.quots[1].id,
-											requirement,
-											date: date.toJSON(),
-											creator,
-											quot: {
-													id: custDoc.quots[1].items[0].id,
-													date: date.toJSON(),
-													price, remark
-												}
-										}
-									]
-								})
-							})
-					})
-				})
-
 			})
 		})
 	})
