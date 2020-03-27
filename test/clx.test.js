@@ -933,7 +933,7 @@ describe('TexTrade', function () {
 								})
 								.then(doc => {
 									customer = doc
-									return testTarget.ifMatchRequirement(doc.requirements[0].id, 1)
+									return testTarget.ifMatchRequirement(doc.requirements[0].id, doc.__v.toString())
 								})
 								.then(match => {
 									expect(match).true
