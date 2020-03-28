@@ -81,35 +81,46 @@ describe('TexTrade', function () {
 
 				describe('创建', () => {
 					it('必须给出产品编号', () => {
-						return testTarget.create({})
+						return testTarget.createProduct({})
 							.should.be.rejectedWith()
 					})
 	
 					it('产品编号必须唯一', () => {
 						return dbSave(schema, toCreate)
 							.then(() => {
-								return testTarget.create(toCreate)
+								return testTarget.createProduct(toCreate)
 							})
 							.should.be.rejectedWith()
 					})
 	
 					it('创建最简单的产品', () => {
-						return testTarget.create({code})
+						return testTarget.createProduct({code})
 							.then(doc => {
-								expect(doc).eql({id: doc.id})
+								expect(doc).eql({
+									id: doc.id,
+									code
+								})
 								return schema.findById(doc.id)
 							})
 							.then(doc => {
 								doc = doc.toJSON()
 								expect(doc.code).eql(code)
 							})
+							.catch(e => {
+								throw e
+							})
 					})
 
 					it('正确创建', () => {
-						return testTarget.create({code, desc, content, constructure, 
+						return testTarget.createProduct({code, desc, content, constructure, 
 							yarn, spec, grey, tags, creator, remark, state})
 							.then(doc => {
-								expect(doc).eql({id: doc.id})
+								expect(doc).eql({
+									id: doc.id,
+									code, desc, content, constructure, yarn, tags, creator, remark, state,
+									spec: {id: doc.spec.id, ...spec}, 
+									grey: {id: doc.grey.id, ...grey} 
+								})
 								return schema.findById(doc.id)
 							})
 							.then(doc => {
@@ -129,9 +140,12 @@ describe('TexTrade', function () {
 					})
 
 					it('创建产品时防止数据注入产品链', () => {
-						return testTarget.create({code, chains:[{}, {}]})
+						return testTarget.createProduct({code, chains:[{}, {}]})
 							.then(doc => {
-								expect(doc).eql({id: doc.id})
+								expect(doc).eql({
+									id: doc.id,
+									code
+								})
 								return schema.findById(doc.id)
 							})
 							.then(doc => {
@@ -151,7 +165,7 @@ describe('TexTrade', function () {
 							})
 					})
 
-					it('正确读取', () => {
+					it('正确读取, 不含chains字段', () => {
 						return testTarget.findById(product.id)
 							.then(doc => {
 								expect(doc).eql({

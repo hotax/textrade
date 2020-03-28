@@ -5,7 +5,7 @@ const schema = require('../../db/schema/Product'),
 
 const config = {
 	schema,
-	projection: ['-chains'],
+	projection: {chains: 0},
 	updatables: ['code', 'desc', 'content', 'constructure', 'yarn',
 		'spec', 'grey', 'creator', 'tags', 'remark'
 	],
@@ -33,12 +33,9 @@ const findProductChainWithFindByIdOrFindOne = (id, product) => {
 }
 
 const addIn = {
-	create(data) {
+	createProduct(data) {
 		const toCreate = {...data, chains: undefined}
-        return new schema(toCreate).save()
-            .then(doc => {
-                return {id: doc.id}
-            })
+        return entity.create(toCreate)
     },
 
 	createChain: (product, data) => {
@@ -148,4 +145,5 @@ const addIn = {
 	}
 }
 
-module.exports = createEntity(config, addIn);
+const entity = createEntity(config, addIn)
+module.exports = entity

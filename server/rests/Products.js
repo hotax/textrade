@@ -24,7 +24,7 @@ module.exports = {
             type: 'create',
             target: 'Product',
             handler: (req) => {
-                return entity.create(req.body)
+                return entity.createProduct(req.body)
             }
         },
         {
