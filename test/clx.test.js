@@ -1162,44 +1162,38 @@ describe('TexTrade', function () {
 					testTarget = require('../server/biz/PartQuot')
 				})
 
-				describe('创建供应商原料/加工', () => {
-					
-					it('供应商原料/加工', () => {
-						return testTarget.createSupplierPart({supplier, part})
+				describe('新增供应商原料/加工报价', () => {
+					it('给出供应商原料/加工标识的报价', () => {
+						return dbSave(schema, {supplier, part})
+							.then(doc => {
+								partQuot = doc
+								return testTarget.create({date}, doc.id)
+							})
 							.then(doc => {
 								expect(doc).eql({
+									partQuots: partQuot.id,
 									supplier, part,
-									id: doc.id
+									id: doc.id,
+									date: date.toJSON(),
+									type: 'inquery'
 								})
-								return schema.findById(doc.id)
+								partQuot = doc
+								return schema.findOne({quots: {$elemMatch: {_id: doc.id}}})
 							})
 							.then(doc => {
 								doc = doc.toJSON()
 								expect(doc.supplier).eql(supplier)
 								expect(doc.part).eql(part)
+								expect(doc.id).eql(partQuot.partQuots)
+								expect(doc.quots.length).eql(1)
+								expect(doc.quots[0]).eql({
+									id: partQuot.id, 
+									date: date.toJSON(),
+									type: 'inquery'
+								})
 							})
 					})
 
-					it('未给出供应商', () => {
-						return testTarget.createSupplierPart({part})
-							.should.be.rejectedWith()
-					})
-
-					it('未给出原料/加工', () => {
-						return testTarget.createSupplierPart({supplier})
-							.should.be.rejectedWith()
-					})
-
-					it('供应商原料/加工重复', () => {
-						return dbSave(schema, {supplier, part})
-							.then(() => {
-								return testTarget.createSupplierPart({supplier, part})
-							})
-							.should.be.rejectedWith()
-					})
-				})
-
-				describe('供应商原料/加工报价', () => {
 					it('指定供应商原料/加工首次最简单报价', () => {
 						return testTarget.create({supplier, part})
 							.then(doc => {
@@ -1209,10 +1203,7 @@ describe('TexTrade', function () {
 									supplier, part,
 									id: doc.id,
 									date: doc.date,
-									type: 'inquery',
-									__v: doc.__v,
-									createdAt: doc.createdAt,
-									updatedAt: doc.updatedAt
+									type: 'inquery'
 								})
 								return schema.findOne({quots: {$elemMatch: {_id: doc.id}}})
 							})
@@ -1243,10 +1234,7 @@ describe('TexTrade', function () {
 									supplier, part,
 									id: doc.id,
 									date: date.toJSON(),
-									type, price, ref, remark, tags,
-									__v: doc.__v,
-									createdAt: doc.createdAt,
-									updatedAt: doc.updatedAt
+									type, price, ref, remark, tags
 								})
 								return schema.findOne({quots: {$elemMatch: {_id: doc.id}}})
 							})
@@ -1283,36 +1271,94 @@ describe('TexTrade', function () {
 					it('正确读取报价', () => {
 						return testTarget.findQuotById(partQuot.quots[0].id)
 							.then(doc => {
-								const {id, __v, createdAt, updatedAt} = partQuot
 								expect(doc).eql({
 									id: partQuot.quots[0].id,
-									partQuots: id,
+									partQuots: partQuot.id,
 									supplier, part, 
 									date:date.toJSON(),
 									type, price, ref, remark, tags,
-									__v, createdAt, updatedAt
+									...__.pick(partQuot, '__v', 'createdAt', 'updatedAt')
 								})
 							})
 					})
 
-					it('指定供应商原料/加工不存在', () => {
-						return testTarget.findSupplierPart(supplier, ID_NOT_EXIST)
+					
+				})
+
+				describe('更新供应商原料/加工报价', () => {
+					beforeEach(() => {
+						return dbSave(schema, {supplier, part, quots: [{}]})
 							.then(doc => {
+								partQuot = doc
+							})
+					})
+
+					it('正确更新', () => {
+						return testTarget.updateQuot(partQuot.quots[0].id, {
+								__v: partQuot.__v,
+								date, type, price, ref, remark, tags
+							})
+							.then(() => {
+								return schema.findById(partQuot.id)
+							})
+							.then((doc) => {
+								const quot = doc.quots[0].toJSON()
+								expect(quot).eql({
+									id: partQuot.quots[0].id,
+									date: date.toJSON(),
+									type, price, ref, remark, tags
+								})
+							})
+					})
+				})
+
+				describe('删除供应商原料/加工报价', () => {
+					beforeEach(() => {
+						return dbSave(schema, {supplier, part, quots: [{}]})
+							.then(doc => {
+								partQuot = doc
+							})
+					})
+
+					it('删除一条报价', () => {
+						return schema.findById(partQuot.id)
+							.then((doc) => {
+								doc.quots.push({price})
+								return doc.save()
+							})
+							.then(() => {
+								return testTarget.removeQuot(partQuot.quots[0].id)
+							})
+							.then(() => {
+								return schema.findById(partQuot.id)
+							})
+							.then((doc) => {
+								expect(doc.quots.length).eql(1)
+								const quot = doc.quots[0].toJSON()
+								expect(quot.price).eql(price)
+							})
+					})
+
+					it('无任何报价时，删除整条供应商原料/加工', () => {
+						return testTarget.removeQuot(partQuot.quots[0].id)
+							.then(() => {
+								return schema.findById(partQuot.id)
+							})
+							.then((doc) => {
 								expect(doc).not.exist
 							})
 					})
-
-					it('正确读取供应商原料/加工', () => {
-						return testTarget.findSupplierPart(supplier, part)
-							.then(doc => {
-								const {id, __v, createdAt, updatedAt} = partQuot
-								expect(doc).eql({
-									id, supplier, part, 
-									__v, createdAt, updatedAt
-								})
-							})
-					})
 				})				
+
+				it('IF-Match', () => {
+					return dbSave(schema, {supplier, part, quots: [{}]})
+							.then(doc => {
+								return testTarget.ifMatchQuot(doc.quots[0].id, doc.__v.toString())
+							})
+							.then(match => {
+								expect(match).true
+							})
+				})
 
 				describe('查询与搜索', () => {
 					const fooSupplier = '6ce79b88da5837277c3f3b80',
@@ -1329,7 +1375,7 @@ describe('TexTrade', function () {
 							})
 							.then(docs => {
 								expect(docs.length).eql(1)
-								expect(docs[0]).eql({id, supplier, part})
+								expect(docs[0]).eql({id, part})
 							})
 					})
 
@@ -1341,34 +1387,7 @@ describe('TexTrade', function () {
 							})
 							.then(docs => {
 								expect(docs.length).eql(1)
-								expect(docs[0]).eql({id, supplier, part})
-							})
-					})
-
-					it('查询报价', () => {
-						let execs = []
-						execs.push(dbSave(schema, {supplier, part, quots: [{}, {date, type, price}]}))
-						execs.push(dbSave(schema, {supplier, part: fooPart}))
-						execs.push(dbSave(schema, {supplier: fooSupplier, part}))
-						execs.push(dbSave(schema, {supplier: fooSupplier, part: fooPart}))
-						return Promise.all(execs)
-							.then(docs => {
-								execs = []
-								execs.push(schema.findOne({supplier, part}))
-								execs.push(testTarget.listQuots(supplier, part))
-								return Promise.all(execs)
-							})
-							.then(results => {
-								partQuot = results[0].toJSON()
-								expect(results[1][0]).eql({supplier, part, ...partQuot.quots[0]})
-								expect(results[1][1]).eql({supplier, part, ...partQuot.quots[1]})
-							})
-					})
-
-					it('查无此供应商原料/加工报价', () => {
-						return testTarget.listQuots(supplier, ID_NOT_EXIST)
-							.then(docs => {
-								expect(docs.length).eql(0)
+								expect(docs[0]).eql({id, supplier})
 							})
 					})
 

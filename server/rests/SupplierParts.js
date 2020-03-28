@@ -11,19 +11,16 @@ const list = function ({id}) {
 
 module.exports = {
     url: '/textrade/api/suppliers/:id/parts',
-    transitions: {
-    },
     rests: [{
             type: 'create',
             target: 'PartQuot',
-            dataRef: {Part: 'part', PartQuots: 'partQuots'},
             handler: (req) => {
                 return entity.create({supplier: req.params.id, ...req.body})
             }
         },
         {
             type: 'query',
-            element: 'SupplierPart',
+            element: 'PartQuots',
             handler: list
         }
     ]

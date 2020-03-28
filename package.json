@@ -21,6 +21,7 @@
     "@finelets/hyper-rest": "^3.0.19",
     "amqplib": "^0.5.3",
     "cors": "^2.8.5",
+    "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "rulebased-validator": "^1.0.2",
     "underscore": "^1.9.1"

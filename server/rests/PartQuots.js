@@ -13,15 +13,14 @@ module.exports = {
     url: '/textrade/api/part-supplier/:id/quots',
     transitions: {
         PartQuot: {id: 'context'},
-        SupplierParts: {id: 'context'},
-        PartSuppliers: {id: 'context'}
+        SupplierParts: {id: 'context.id'},
+        PartSuppliers: {id: 'context.id'}
     },
     rests: [{
             type: 'create',
             target: 'PartQuot',
-            dataRef: {Supplier: 'supplier', Part: 'part'},
             handler: (req) => {
-                return entity.create(req.body)
+                return entity.create(req.body, req.params.id)
             }
         },
         {

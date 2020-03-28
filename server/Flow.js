@@ -21,14 +21,6 @@ module.exports = {
         quot: 'SupplierParts',
         supplier: 'Supplier'
     },
-    SupplierPart: {
-        quots: 'SupplierPartQuots',
-        self: 'SupplierPart'
-    },
-    SupplierPartQuots: {
-        add: 'SupplierPartQuots',
-        supplierPart: 'SupplierPart'
-    },
     Customers: {
         add: 'Customers',
         home: 'TexTrade'

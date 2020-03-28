@@ -1,4 +1,11 @@
-const entity = require('../biz/PartQuot')
+const {findQuotById, ifMatchQuot, updateQuot, removeQuot} = require('../biz/PartQuot')
+
+const ifNoneMatch = (id, version) => {
+    return ifMatchQuot(id, version)
+        .then(match => {
+            return !match
+        })
+}
 
 module.exports = {
     url: '/textrade/api/partquots/:id',
@@ -9,8 +16,18 @@ module.exports = {
     },
     rests: [{
             type: 'read',
+            ifNoneMatch,
             dataRef: {Supplier: 'supplier', Part: 'part', PartQuots: 'partQuots'},
-            handler: entity.findQuotById
+            handler: findQuotById
+        },
+        {
+            type: 'update',
+            ifMatch: ifMatchQuot,
+            handler: updateQuot
+        },
+        {
+            type: 'delete',
+            handler: removeQuot
         }
     ]
 }
