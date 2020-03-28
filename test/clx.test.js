@@ -783,8 +783,8 @@ describe('TexTrade', function () {
 							.then(docs => {
 								expect(docs.length).eqls(1)
 								expect(docs[0]).eqls({
-									code, name, address, link, creator, tags,
-									...__.pick(customer, 'id', 'createdAt', 'updatedAt')
+									id: customer.id,
+									code, name, address, link, creator, tags
 								})
 							})
 					})
@@ -1050,10 +1050,8 @@ describe('TexTrade', function () {
 					type = 'process',
 					creator = '5ce79b99da5837277c3f3b66',
 					tags = 'tags'
-				let part
-
+				
 				beforeEach(() => {
-					toCreate = {name}
 					schema = require('../db/schema/Part');
 					testTarget = require('../server/biz/Part');
 				})
@@ -1065,8 +1063,13 @@ describe('TexTrade', function () {
 					})
 
 					it('创建一最简单的原料/加工', () => {
-						return testTarget.create(toCreate)
+						return testTarget.create({name})
 							.then(doc => {
+								expect(doc).eql({
+									id: doc.id,
+									type: 'material',
+									name
+								})
 								return schema.findById(doc.id)
 							})
 							.then(doc => {
@@ -1078,6 +1081,10 @@ describe('TexTrade', function () {
 					it('创建原料/加工', () => {
 						return testTarget.create({code, type, name, creator, tags})
 							.then(doc => {
+								expect(doc).eql({
+									id: doc.id,
+									code, type, name, creator, tags
+								})
 								return schema.findById(doc.id)
 							})
 							.then(doc => {
@@ -1102,6 +1109,22 @@ describe('TexTrade', function () {
 							})
 							.then(data => {
 								expect(data.length).eqls(3)
+							})
+					})
+
+					it('查询结果', () => {
+						let part
+						return dbSave(schema, {code, type, name, creator, tags})
+							.then((doc) => {
+								part = doc
+								return testTarget.search()
+							})
+							.then(docs => {
+								expect(docs.length).eqls(1)
+								expect(docs[0]).eql({
+									id: part.id,
+									code, type, name, creator, tags
+								})
 							})
 					})
 				})

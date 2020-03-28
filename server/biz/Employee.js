@@ -6,7 +6,7 @@ const config = {
     projection: {password: 0},
     updatables: ['userId', 'name', 'pic', 'email'],
     searchables: ['userId', 'name', 'email'],
-    listable: 'name',
+    listable: {password: 0, pic: 0, email: 0, isAdmin: 0, roles: 0, inUse: 0},
     setValues: (doc, data) => {
         // do nothing but an example
         /* if (data.userId && !doc.password) {

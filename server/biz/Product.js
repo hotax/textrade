@@ -10,7 +10,7 @@ const config = {
 		'spec', 'grey', 'creator', 'tags', 'remark'
 	],
 	searchables: ['code', 'desc', 'content', 'constructure', 'yarn', 'remark', 'tags'],
-	listable: ['code', 'desc', 'content', 'constructure', 'yarn', 'remark', 'tags', 'spec', 'grey', 'creator', 'state']
+	listable: {chains: 0}
 }
 
 const findProductChainWithFindByIdOrFindOne = (id, product) => {
