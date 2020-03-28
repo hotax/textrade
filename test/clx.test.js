@@ -585,8 +585,7 @@ describe('TexTrade', function () {
 					link = 'link',
 					creator = '5ce79b99da5837277c3f3b66',
 					tags = 'tags'
-				let supplier
-
+				
 				beforeEach(() => {
 					toCreate = {code}
 					schema = require('../db/schema/Supplier')
@@ -610,38 +609,34 @@ describe('TexTrade', function () {
 					it('创建一最简单的供应商', () => {
 						return testTarget.create(toCreate)
 							.then(doc => {
-								supplier = doc
-								expect(doc.code).eql(code)
+								expect(doc).eql({
+									id: doc.id,
+									code
+								})
 								return schema.findById(doc.id)
 							})
 							.then(doc => {
-								doc = doc.toJSON()
-								expect(doc.code).eql(supplier.code)
+								expect(doc.code).eql(code)
 							})
 					})
 
 					it('创建供应商', () => {
 						return testTarget.create({code, name, address, account, link, creator, tags})
 							.then(doc => {
-								supplier = doc
+								expect(doc).eql({
+									id: doc.id,
+									code, name, address, account, link, creator, tags
+								})
+								return schema.findById(doc.id)
+							})
+							.then(doc => {
 								expect(doc.code).eql(code)
 								expect(doc.name).eql(name)
 								expect(doc.address).eql(address)
 								expect(doc.account).eql(account)
 								expect(doc.link).eql(link)
-								expect(doc.creator).eql(creator)
+								expect(doc.creator.toString()).eql(creator)
 								expect(doc.tags).eql(tags)
-								return schema.findById(doc.id)
-							})
-							.then(doc => {
-								doc = doc.toJSON()
-								expect(doc.code).eql(supplier.code)
-								expect(doc.name).eql(supplier.name)
-								expect(doc.address).eql(supplier.address)
-								expect(doc.account).eql(supplier.account)
-								expect(doc.link).eql(supplier.link)
-								expect(doc.creator).eql(supplier.creator)
-								expect(doc.tags).eql(supplier.tags)
 							})
 					})
 				})
@@ -656,7 +651,7 @@ describe('TexTrade', function () {
 						data.push(dbSave(schema, {code: '04', link: 'foo'}))
 						return Promise.all(data)
 							.then(() => {
-								return testTarget.search({}, 'oo')
+								return testTarget.search(undefined, 'oo')
 							})
 							.then(data => {
 								expect(data.length).eqls(4)
@@ -668,28 +663,27 @@ describe('TexTrade', function () {
 					it('所有字段均可更新', () => {				
 						return dbSave(schema, {code: 'the code'})
 							.then(doc => {
-								supplier = doc
 								id = doc.id
-								__v = doc.__v
-								return testTarget.update({id, __v, code, name, address, account, link, creator, tags})
+								return testTarget.update({
+									id,
+									__v: doc.__v,
+									code, name, address, account, link, creator, tags
+								})
 							})
 							.then(() => {
-								return schema.findById(supplier.id)
+								return schema.findById(id)
 							})
 							.then(doc => {
-								doc = doc.toJSON()
-								expect(doc.updatedAt).not.eql(supplier.updatedAt)
-								expect(doc).eql({
-									id: supplier.id, 
-									code, name, address, account, link, creator, tags, 
-									__v: supplier.__v + 1,
-									createdAt: supplier.createdAt,
-									updatedAt: doc.updatedAt
-								})
+								expect(doc.code).eql(code)
+								expect(doc.name).eql(name)
+								expect(doc.address).eql(address)
+								expect(doc.account).eql(account)
+								expect(doc.link).eql(link)
+								expect(doc.creator.toString()).eql(creator)
+								expect(doc.tags).eql(tags)
 							})
 					})
 				})	
-
 			})
 
 			describe('Customers - 客户', () => {
