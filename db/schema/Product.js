@@ -1,8 +1,28 @@
 const mongoose = require('mongoose'),
       ObjectId = mongoose.Schema.Types.ObjectId,
       createCollection = require('@finelets/hyper-rest/db/mongoDb/CreateCollection'),
-      createSchema = require('@finelets/hyper-rest/db/mongoDb/CreateSchema'),
-      chainSchema = require('./ProductChain')
+      createSchema = require('@finelets/hyper-rest/db/mongoDb/CreateSchema')
+
+const chainPartQuotSchema = createSchema({
+    quot: {type: ObjectId, required: true}
+})
+
+const chainPartSchema = createSchema({
+    part: {type: ObjectId, required: true},
+    quots: [chainPartQuotSchema],
+    price: String,
+    remark: String
+})
+
+const chainSchema = createSchema({
+    date: {type: Date, default: new Date()},
+    desc: String,
+    parts: [chainPartSchema],
+    customerRequirement: ObjectId,
+    qty: Number,
+    creator: ObjectId,
+    tags: String
+})
 
 const SpecSchema = createSchema({
   width: String,  // 门幅

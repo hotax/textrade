@@ -81,6 +81,8 @@ module.exports = {
         productChain: 'ProductChain'
     },
     ProductChainPart: {
+        chain: 'ProductChain',
+        chainParts: 'ProductChainParts',
         quots: 'ProductChainPartQuots'
     },
     Users: {

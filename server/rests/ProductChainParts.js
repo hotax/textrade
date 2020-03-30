@@ -1,7 +1,7 @@
 const entity = require('../biz/Product')
 
-const list = function ({id, product}) {
-    return entity.listChainParts(id, product)
+const list = function ({id}) {
+    return entity.listChainParts(id)
         .then(function (list) {
             return {
                 items: list
@@ -10,15 +10,15 @@ const list = function ({id, product}) {
 }
 
 module.exports = {
-    url: '/textrade/api/products/:product/chains/:id/parts',
+    url: '/textrade/api/products/chains/:id/parts',
     transitions: {
-        ProductChain: {product: 'context.product', id: 'params.id'}
+        ProductChainPart: {id: 'context.chain'}
     },
     rests: [{
             type: 'create',
             target: 'ProductChainPart',
             handler: (req) => {
-                return entity.addChainPart(req.params.id, req.body, req.params.product)
+                return entity.addChainPart(req.params.id, req.body)
             }
         },
         {

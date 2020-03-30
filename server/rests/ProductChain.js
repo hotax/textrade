@@ -1,18 +1,38 @@
-const entity = require('../biz/Product')
+const {
+    ifMatchChain,
+    updateChain,
+    removeChain,
+    findChainById
+} = require('../biz/Product')
 
-const read = function (id, {product}) {
-    return entity.findChainById(id, product)
+const ifNoneMatch = (id, version) => {
+    return ifMatchChain(id, version)
+        .then(match => {
+            return !match
+        })
 }
 
 module.exports = {
     url: '/textrade/api/products/chains/:id',
     transitions: {
-        ProductChainPart: {id: 'context'}
+        ProductChainPart: {id: 'context.chain'}
     },
     rests: [{
             type: 'read',
+            ifNoneMatch,
             dataRef: {User: 'creator'},
-            handler: read
+            handler: (id) => {
+                return findChainById(id)
+            }
+        },
+        {
+            type: 'update',
+            ifMatch: ifMatchChain,
+            handler: updateChain
+        },
+        {
+            type: 'delete',
+            handler: removeChain
         }
     ]
 }
