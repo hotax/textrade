@@ -85,6 +85,18 @@ module.exports = {
         chainParts: 'ProductChainParts',
         quots: 'ProductChainPartQuots'
     },
+    ProductChainPartQuots: {
+        add: 'ProductChainPartQuots',
+        productChainPart: 'ProductChainPart'
+    },
+    ProductChainPartQuot: {
+        product: 'Product',
+        productChains: 'ProductChains',
+        productChain: 'ProductChain',
+        productChainParts: 'ProductChainParts',
+        productChainPart: 'ProductChainPart',
+        productChainPartQuots: 'ProductChainPartQuots'
+    },
     Users: {
         add: 'RegisterUser',
         home: 'TexTrade'

@@ -13,7 +13,7 @@ module.exports = {
     url: '/textrade/api/products/:id/chains',
     transitions: {
         ProductChain: {id: 'context.product'},
-        ProductChains: {id: 'params.id'}
+        ProductChainPartQuot: {id: 'context.product'}
     },
     rests: [{
             type: 'create',

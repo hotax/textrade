@@ -764,23 +764,24 @@ describe('TexTrade', function () {
 						})
 
 						describe('产品链原料/加工报价', () => {
-							let checkPartQuot
+							let checkPartQuot, part
 
 							beforeEach(() => {
 								checkPartQuot = sinon.stub()
-								testTarget = require('../server/biz/ProductChainQuots')(checkPartQuot)
+								testTarget = require('../server/biz/ProductChainQuot')(checkPartQuot)
+								return schema.findById(product.id)
+									.then(doc => {
+										doc.chains[0].parts.push({part: fooPart})
+										return doc.save()
+									})
+									.then(doc => {
+										product = doc
+										chain = doc.chains[0]
+										part = doc.chains[0].parts[0]
+									})
 							})
 
 							describe('基于产品链原料/加工查询其报价列表', () => {
-								beforeEach(() => {
-									chain.parts.push(parts[1])
-									return product.save()
-										.then(doc => {
-											product = doc
-											chain = doc.chains[0]
-										})
-								})
-
 								it('给出产品链原料/加工不存在', () => {
 									return testTarget.listQuots(ID_NOT_EXIST)
 										.then(docs => {
@@ -789,10 +790,17 @@ describe('TexTrade', function () {
 								})
 
 								it('正确列出', () => {
-									return testTarget.listQuots(chain.parts[1].id)
+									part.quots.push({quot})
+									return product.save()
+										.then(() => {
+											return testTarget.listQuots(part.id)
+										})
 										.then(docs => {
 											expect(docs.length).eql(1)
-											expect(docs[0]).eql({quot})
+											expect(docs[0]).eql({
+												id: docs[0].id,
+												quot
+											})
 										})
 								})
 							})
@@ -800,7 +808,7 @@ describe('TexTrade', function () {
 							describe('为产品链原料/加工添加报价', () => {
 								it('重复报价', () => {
 									checkPartQuot.withArgs(feePart, quot).resolves(true)
-									chain.parts.push(parts[1])
+									chain.parts.push({part: feePart, quots: [{quot}]})
 									return product.save()
 										.then(doc => {
 											product = doc
@@ -814,7 +822,10 @@ describe('TexTrade', function () {
 									checkPartQuot.withArgs(fooPart, quot).resolves(true)
 									return testTarget.addQuot(chain.parts[0].id, {quot})
 										.then(doc => {
-											expect(doc).eql({quot})
+											expect(doc).eql({
+												id: doc.id, 
+												quot
+											})
 										})
 								})
 
@@ -823,7 +834,75 @@ describe('TexTrade', function () {
 									return testTarget.addQuot(chain.parts[0].id, {quot})
 										.should.be.rejectedWith()
 								})
+							})
 
+							describe('读取产品链原料/加工报价', () => {		
+								beforeEach(() => {
+									part.quots.push({quot})
+									return product.save()
+										.then(doc => {
+											product = doc
+											chain = doc.chains[0]
+											part = doc.chains[0].parts[0]
+										})
+								})
+
+								it('IF-Match', () => {
+									return testTarget.ifMatchQuot(part.quots[0].id, product.__v.toString())
+										.then(match => {
+											expect(match).true
+										})
+								})
+	
+								it('给出产品链原料/加工不存在', () => {
+									return testTarget.findQuotById(ID_NOT_EXIST)
+										.then(doc => {
+											expect(doc).not.exist
+										})
+								})
+	
+								it('正确读取产品链原料/加工报价', () => {
+									return testTarget.findQuotById(part.quots[0].id)
+										.then(doc => {
+											expect(doc).eql({
+												product: product.id,
+												chain: chain.id,
+												part: part.id,
+												id: part.quots[0].id,
+												quot,
+												__v: product.__v
+											})
+										})
+								})
+							})
+
+							describe('删除产品链原料/加工报价', () => {
+								beforeEach(() => {
+									part.quots.push({quot})
+									return product.save()
+										.then(doc => {
+											product = doc
+											chain = doc.chains[0]
+											part = doc.chains[0].parts[0]
+										})
+								})
+
+								it('指定产品链原料/加工报价不存在', () => {
+									return testTarget.removeQuot(ID_NOT_EXIST)
+										.then((doc) => {
+											expect(doc).not.exist
+										})
+								})
+		
+								it('删除', () => {
+									return testTarget.removeQuot(part.quots[0].id)
+										.then(() => {
+											return schema.findById(product.id)
+										})
+										.then(doc => {
+											expect(doc.chains[0].parts[0].quots.length).eql(0)
+										})
+								})
 							})
 						})
 					})

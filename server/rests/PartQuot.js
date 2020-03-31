@@ -12,7 +12,7 @@ module.exports = {
     transitions: {
         PartSuppliers: {id: 'context.id'},
         SupplierParts: {id: 'context.id'},
-        ProductChainPartQuots: {id: 'context.quot'}
+        ProductChainPartQuot: {id: 'context'}
     },
     rests: [{
             type: 'read',

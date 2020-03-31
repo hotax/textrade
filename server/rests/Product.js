@@ -8,7 +8,8 @@ module.exports = {
     transitions: {
         ProductChain: {id: 'context.product'},
         ProductChains: {id: 'params.id'},
-        ProductChainPart: {id: 'context'}
+        ProductChainPart: {id: 'context'},
+        ProductChainPartQuot: {id: 'context.product'}
     },
     rests: [{
             type: 'read',
