@@ -17,7 +17,6 @@ module.exports = {
     rests: [{
             type: 'read',
             ifNoneMatch,
-            dataRef: {Supplier: 'supplier', Part: 'part', PartQuots: 'partQuots'},
             handler: findQuotById
         },
         {

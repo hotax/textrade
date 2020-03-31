@@ -11,6 +11,9 @@ const list = function ({id}) {
 
 module.exports = {
     url: '/textrade/api/suppliers/:id/parts',
+    transitions: {
+        PartQuot: {id: 'context.supplier'}
+    },
     rests: [{
             type: 'create',
             target: 'PartQuot',

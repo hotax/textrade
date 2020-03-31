@@ -24,7 +24,7 @@ module.exports = {
     rests: [{
             type: 'read',
             ifNoneMatch,
-            dataRef: {Product: 'product', Part: 'part'},
+            dataRef: {Part: 'part'},
             handler: findProductChainPartById
         },
         {

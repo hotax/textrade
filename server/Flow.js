@@ -49,7 +49,12 @@ module.exports = {
         suppliers: 'PartSuppliers'
     },
     PartQuot: {
-        self: 'PartQuot'
+        self: 'PartQuot',
+        partQuots: 'PartQuots',
+        supplierParts: 'SupplierParts',
+        partSuppliers: 'PartSuppliers',
+        supplier: 'Supplier',
+        part: 'Part'
     },
     PartQuots: {
         add: 'PartQuots'
@@ -81,8 +86,10 @@ module.exports = {
         productChain: 'ProductChain'
     },
     ProductChainPart: {
-        chain: 'ProductChain',
-        chainParts: 'ProductChainParts',
+        product: 'Product',
+        productChains: 'ProductChains',
+        productChain: 'ProductChain',
+        productChainParts: 'ProductChainParts',
         quots: 'ProductChainPartQuots'
     },
     ProductChainPartQuots: {
