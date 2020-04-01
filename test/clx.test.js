@@ -274,6 +274,36 @@ describe('TexTrade', function () {
 						})
 					})
 
+					describe('基于客户需求查询相关产品链', () => {
+						beforeEach(() => {
+							let row
+							return schema.findById(product.id)
+								.then(doc => {
+									row = doc.chains.push({date, customerRequirement})
+									return doc.save()
+								})
+								.then(doc => {
+									product = doc
+									chain = doc.chains[row - 1]
+								})
+								.catch(e => {
+									throw e
+								})
+						})
+
+						it('列出产品链', () => {
+							return testTarget.listChainsByRequirement(customerRequirement)
+								.then((chains) => {
+									expect(chains.length).eql(1)
+									expect(chains[0]).eql({
+										id: chain.id,
+										date: date.toJSON(),
+										customerRequirement
+									})
+								})
+						})
+					})
+
 					describe('创建产品链', () => {
 						it('防止产品链原料/加工非法数据注入', () => {
 							return testTarget.createChain(product.id, {parts:[{}]})

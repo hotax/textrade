@@ -258,6 +258,27 @@ const addIn = {
 				return doc.save()
 			}
 		})
+	},
+
+	listChainsByRequirement: (requirement) => {
+		let chain
+		return schema.find({
+			chains: {
+				$elemMatch: {
+					customerRequirement: requirement
+				}
+			}
+		})
+		.then(docs => {
+			return __.map(docs, (doc) => {
+				doc = doc.toJSON()
+				chain = __.find(doc.chains, (ch) => {
+					return ch.customerRequirement = requirement
+				})
+				delete chain.parts
+				return chain
+			})
+		})
 	}
 }
 

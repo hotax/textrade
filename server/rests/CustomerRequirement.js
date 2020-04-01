@@ -15,9 +15,7 @@ const ifNoneMatch = (id, version) => {
 module.exports = {
     url: '/textrade/api/customers/requirements/:id',
     transitions: {
-        CustomerRequirements: {
-            id: 'context.id'
-        }
+        ProductChain: {id: 'context'}
     },
     rests: [{
             type: 'read',

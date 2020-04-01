@@ -37,7 +37,8 @@ module.exports = {
     CustomerRequirement: {
         self: "CustomerRequirement",
         collection: "CustomerRequirements",
-        customer: 'Customer'
+        customer: 'Customer',
+        productChains: 'CustomerRequirementChains'
     },
     Parts: {
         add: 'Parts',

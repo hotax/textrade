@@ -21,7 +21,7 @@ module.exports = {
     rests: [{
             type: 'read',
             ifNoneMatch,
-            dataRef: {User: 'creator'},
+            dataRef: {User: 'creator', CustomerRequirement: 'customerRequirement'},
             handler: (id) => {
                 return findChainById(id)
             }
