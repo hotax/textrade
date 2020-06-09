@@ -1,7 +1,7 @@
 const connectDb = require('@finelets/hyper-rest/db/mongoDb/ConnectMongoDb'),
 	appBuilder = require('@finelets/hyper-rest/express/AppBuilder').begin(__dirname),
 	logger = require('@finelets/hyper-rest/app/Logger'),
-	messageCenter = require('./server/MessageCenter'),
+	messageCenter = require('@finelets/hyper-rest/mq'),
 	mcConfig = require('./server/MessageCenterConfig'),
 	jwt = require('@finelets/hyper-rest/jwt/ExpressJwt'),
 	jwtConfig = require('./server/JwtConfig')(),
