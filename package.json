@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/JSMetta/cross#readme",
   "dependencies": {
-    "@finelets/hyper-rest": "^3.0.19",
+    "@finelets/hyper-rest": "^3.1.0",
     "amqplib": "^0.5.3",
     "cors": "^2.8.5",
     "lodash": "^4.17.15",
@@ -31,7 +31,7 @@
     "chai-as-promised": "^7.1.1",
     "chai-xml": "^0.3.2",
     "chance": "^1.0.18",
-    "mocha": "^6.1.4",
+    "mocha": "^7.2.0",
     "mocha-mongoose": "^1.2.0",
     "mock-express-request": "^0.2.2",
     "mock-express-response": "^0.2.2",
