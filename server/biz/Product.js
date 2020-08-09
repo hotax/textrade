@@ -1,6 +1,6 @@
 const schema = require('../../db/schema/Product'),
 	createEntity = require('@finelets/hyper-rest/db/mongoDb/DbEntity'),
-	__ = require('lodash'),
+	__ = require('underscore'),
 	O2JSON = require('@finelets/hyper-rest/utils/O2JSON'),
 	logger = require('@finelets/hyper-rest/app/Logger')
 
