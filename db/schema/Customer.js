@@ -10,6 +10,7 @@ const contactSchema = createSchema({
 })
 
 const requirementSchema = createSchema({
+    title: {type: String},
     requirement: {type: String, required: true},
     date: {type: Date, default: new Date()},
     creator: ObjectId

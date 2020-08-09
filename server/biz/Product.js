@@ -1,54 +1,68 @@
 const schema = require('../../db/schema/Product'),
 	createEntity = require('@finelets/hyper-rest/db/mongoDb/DbEntity'),
-	__ = require('underscore'),
+	__ = require('lodash'),
+	O2JSON = require('@finelets/hyper-rest/utils/O2JSON'),
 	logger = require('@finelets/hyper-rest/app/Logger')
 
 const config = {
 	schema,
-	projection: {chains: 0},
+	projection: {
+		chains: 0
+	},
 	updatables: ['code', 'desc', 'content', 'constructure', 'yarn',
 		'spec', 'grey', 'creator', 'tags', 'remark'
 	],
 	searchables: ['code', 'desc', 'content', 'constructure', 'yarn', 'remark', 'tags'],
-	listable: {chains: 0}
+	listable: {
+		chains: 0
+	}
 }
 
 const findProductChainWithFindByIdOrFindOne = (id, product) => {
 	const func = product ? 'findById' : 'findOne'
 	const arg = product ? product : {
-			chains: {
-				$elemMatch: {
-					_id: id
-				}
+		chains: {
+			$elemMatch: {
+				_id: id
 			}
 		}
-		return schema[func](arg)
-			.then(doc => {
-				let chain
-				if(doc) {
-					chain = doc.chains.id(id)
-				}
-				return {chain, product: doc}
-			})
+	}
+	return schema[func](arg)
+		.then(doc => {
+			let chain
+			if (doc) {
+				chain = doc.chains.id(id)
+			}
+			return {
+				chain,
+				product: doc
+			}
+		})
 }
 
 const addIn = {
 	createProduct(data) {
-		const toCreate = {...data, chains: undefined}
-        return entity.create(toCreate)
-    },
+		const toCreate = {
+			...data,
+			chains: undefined
+		}
+		return entity.create(toCreate)
+	},
 
 	createChain: (product, data) => {
 		let row
 		return schema.findById(product)
 			.then(doc => {
-				const chain = {...data, parts: []}
+				const chain = {
+					...data,
+					parts: []
+				}
 				row = doc.chains.push(chain)
 				return doc.save()
 			})
 			.then(doc => {
 				doc = doc.toJSON()
-				const chain = doc.chains[row -1]
+				const chain = doc.chains[row - 1]
 				delete chain.parts
 				return {
 					product: doc.id,
@@ -63,7 +77,10 @@ const addIn = {
 
 	findChainById: (id, product) => {
 		return findProductChainWithFindByIdOrFindOne(id, product)
-			.then(({chain, product}) => {
+			.then(({
+				chain,
+				product
+			}) => {
 				if (chain) {
 					chain = chain.toJSON()
 					delete chain.parts
@@ -88,38 +105,38 @@ const addIn = {
 
 	updateChain: (id, toUpdate) => {
 		return schema.findOne({
-			__v: toUpdate.__v,
-			chains: {
-				$elemMatch: {
-					_id: id
+				__v: toUpdate.__v,
+				chains: {
+					$elemMatch: {
+						_id: id
+					}
 				}
-			}
-		})
-		.then(doc => {
-			const subDoc = doc.chains.id(id)
-			__.each(['date', 'desc', 'customerRequirement', 'qty', 'creator', 'tags'], (key) => {
-				if(toUpdate[key]) subDoc[key] = toUpdate[key]
-				else subDoc[key] = undefined
 			})
-			return doc.save()
-		})
+			.then(doc => {
+				const subDoc = doc.chains.id(id)
+				__.each(['date', 'title', 'desc', 'customerRequirement', 'qty', 'creator', 'tags'], (key) => {
+					if (toUpdate[key]) subDoc[key] = toUpdate[key]
+					else subDoc[key] = undefined
+				})
+				return doc.save()
+			})
 	},
 
 	removeChain: (id) => {
 		return schema.findOne({
-			chains: {
-				$elemMatch: {
-					_id: id
+				chains: {
+					$elemMatch: {
+						_id: id
+					}
 				}
-			}
-		})
-		.then(doc => {
-			if(doc) {
-				const subDoc = doc.chains.id(id)
-				subDoc.remove()
-				return doc.save()
-			}
-		})
+			})
+			.then(doc => {
+				if (doc) {
+					const subDoc = doc.chains.id(id)
+					subDoc.remove()
+					return doc.save()
+				}
+			})
 	},
 
 	listChains: (product) => {
@@ -134,7 +151,9 @@ const addIn = {
 
 	listChainParts: (chain, product) => {
 		return findProductChainWithFindByIdOrFindOne(chain, product)
-			.then(({chain}) => {
+			.then(({
+				chain
+			}) => {
 				if (!chain) return []
 				chain = chain.toJSON()
 				return __.map(chain.parts, p => {
@@ -147,51 +166,60 @@ const addIn = {
 		let productId, chainId
 		let row
 		return findProductChainWithFindByIdOrFindOne(chain, product)
-			.then(({chain, product}) => {
+			.then(({
+				chain,
+				product
+			}) => {
 				productId = product.id
 				chainId = chain.id
-				if(__.find(chain.parts, (p) => {
-					return p.part.toString() == chainPart.part
-				})) throw 'Duplicate part in a product chain'
+				if (__.find(chain.parts, (p) => {
+						return p.part.toString() == chainPart.part
+					})) throw 'Duplicate part in a product chain'
 				row = chain.parts.push(chainPart)
 				return product.save()
 			})
 			.then(doc => {
 				const part = doc.chains.id(chainId).parts[row - 1].toJSON()
 				delete part.quots
-				return {product: productId, chain: chainId, ...part}
+				return {
+					product: productId,
+					chain: chainId,
+					...part
+				}
 			})
 	},
 
 	findProductChainPartById: (chainPartId) => {
 		return schema.findOne({
-			chains: {
-				$elemMatch: {
-					parts: {
-						$elemMatch: {
-							_id: chainPartId
+				chains: {
+					$elemMatch: {
+						parts: {
+							$elemMatch: {
+								_id: chainPartId
+							}
 						}
 					}
 				}
-			}
-		})
-		.then(doc => {
-			if(!doc) return
-			doc = doc.toJSON()
-			let part
-			const chain = __.find(doc.chains, (ch) => {
-				part = __.findWhere(ch.parts, {id: chainPartId})
-				return part
 			})
-			delete part.quots
-			const result = {
-				product: doc.id,
-				chain: chain.id,
-				...part,
-				__v: doc.__v
-			}
-			return result
-		})
+			.then(doc => {
+				if (!doc) return
+				doc = doc.toJSON()
+				let part
+				const chain = __.find(doc.chains, (ch) => {
+					part = __.findWhere(ch.parts, {
+						id: chainPartId
+					})
+					return part
+				})
+				delete part.quots
+				const result = {
+					product: doc.id,
+					chain: chain.id,
+					...part,
+					__v: doc.__v
+				}
+				return result
+			})
 	},
 
 	ifMatchChainPart: (id, version) => {
@@ -206,61 +234,65 @@ const addIn = {
 				}
 			}
 		}, version)
-	}, 
+	},
 
 	updateChainPart: (id, toUpdate) => {
 		return schema.findOne({
-			__v: toUpdate.__v,
-			chains: {
-				$elemMatch: {
-					parts: {
-						$elemMatch: {
-							_id: id
+				__v: toUpdate.__v,
+				chains: {
+					$elemMatch: {
+						parts: {
+							$elemMatch: {
+								_id: id
+							}
 						}
 					}
 				}
-			}
-		})
-		.then(doc => {
-			let part
-			__.find(doc.chains, (ch) => {
-				part = __.findWhere(ch.parts, {id})
-				return part
 			})
-			__.each(['part', 'price', 'remark'], (key) => {
-				if(toUpdate[key]) part[key] = toUpdate[key]
-				else part[key] = undefined
+			.then(doc => {
+				let part
+				__.find(doc.chains, (ch) => {
+					part = __.findWhere(ch.parts, {
+						id
+					})
+					return part
+				})
+				__.each(['part', 'price', 'remark'], (key) => {
+					if (toUpdate[key]) part[key] = toUpdate[key]
+					else part[key] = undefined
+				})
+				return doc.save()
 			})
-			return doc.save()
-		})
 	},
 
 	removeChainPart: (id) => {
 		return schema.findOne({
-			chains: {
-				$elemMatch: {
-					parts: {
-						$elemMatch: {
-							_id: id
+				chains: {
+					$elemMatch: {
+						parts: {
+							$elemMatch: {
+								_id: id
+							}
 						}
 					}
 				}
-			}
-		})
-		.then(doc => {
-			if(doc) {
-				let part
-				__.find(doc.chains, (ch) => {
-					part = __.findWhere(ch.parts, {id})
-					return part
-				})
-				part.remove()
-				return doc.save()
-			}
-		})
+			})
+			.then(doc => {
+				if (doc) {
+					let part
+					__.find(doc.chains, (ch) => {
+						part = __.findWhere(ch.parts, {
+							id
+						})
+						return part
+					})
+					part.remove()
+					return doc.save()
+				}
+			})
 	},
 
-	listChainsByRequirement: (requirement) => {
+	/* listChainsByRequirement: (requirement) => {
 		let chain
 		return schema.find({
 			chains: {
@@ -270,15 +302,45 @@ const addIn = {
 			}
 		})
 		.then(docs => {
+			let finalChains = []
 			return __.map(docs, (doc) => {
 				doc = doc.toJSON()
-				chain = __.find(doc.chains, (ch) => {
-					return ch.customerRequirement = requirement
+				chains = __.filter(doc.chains, (ch) => {
+					let me = false
+					if (ch.customerRequirement == requirement) {
+						delete ch.parts
+						me = true
+					}
+					return me
 				})
-				delete chain.parts
-				return chain
+				
+				return chains
 			})
 		})
+	} */
+
+	listChainsByRequirement: (requirement) => {
+		const id = O2JSON.createObjectId(requirement)
+		return schema.aggregate([{
+					$match: {
+						'chains.customerRequirement': id
+					}
+				},
+				{
+					$unwind: '$chains'
+				},
+				{
+					$project: {
+						"chains": 1
+					}
+				}
+			])
+			.then(docs => {
+				const chains = __.map(docs, (doc) => {
+					return O2JSON.convertToJSON(doc.chains, ['parts'])
+				})
+				return chains
+			})
 	}
 }
 

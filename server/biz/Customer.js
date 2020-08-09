@@ -1,6 +1,7 @@
 const schema = require('../../db/schema/Customer'),
 	createEntity = require('@finelets/hyper-rest/db/mongoDb/DbEntity'),
-	__ = require('underscore')
+	__ = require('underscore'),
+	_ = require('lodash')
 
 const config = {
 	schema,
@@ -23,6 +24,9 @@ const addIn = {
 						return {customer: doc.id, ...doc.requirements[row-1]}
 					})
 			})
+			.catch(e => {
+				throw e
+			})
 	},
 
 	listRequirements: (customer) => {
@@ -31,6 +35,9 @@ const addIn = {
 				if(!doc) return []
 				doc = doc.toJSON()
 				return doc.requirements
+			})
+			.then(data => {
+				return _.orderBy(data, ['date'], ['desc'])
 			})
 	},
 
@@ -60,7 +67,7 @@ const addIn = {
 		})
 		.then(doc => {
 			const req = doc.requirements.id(requirement)
-			__.each(['requirement', 'date', 'creator'], (key) => {
+			__.each(['title', 'requirement', 'date', 'creator'], (key) => {
 				if(toUpdate[key]) req[key] = toUpdate[key]
 				else req[key] = undefined
 			})

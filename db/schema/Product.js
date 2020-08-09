@@ -16,10 +16,11 @@ const chainPartSchema = createSchema({
 
 const chainSchema = createSchema({
     date: {type: Date, default: new Date()},
+    title: String,
     desc: String,
     parts: [chainPartSchema],
-    customerRequirement: ObjectId,
-    qty: Number,
+    customerRequirement: {type: ObjectId},
+    qty: String,
     creator: ObjectId,
     tags: String
 })

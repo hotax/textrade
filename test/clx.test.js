@@ -1,5 +1,4 @@
-var proxyquire = require('proxyquire'),
-	dbSave = require('../finelets/db/mongoDb/dbSave'),
+const dbSave = require('./dbSave'),
 	__ = require('underscore')
 
 describe('TexTrade', function () {
@@ -214,7 +213,7 @@ describe('TexTrade', function () {
 				describe('ProductionChain - 产品链', () => {
 					const desc = 'chain desc',
 							date = new Date(),
-							qty = 10000,
+							qty = '10000W',
 							fooPart = '5ce79b99da5837277c3f3b66',
 							price = '23.56',
 							feePart = '5ce79b99da5837277c3f3b77',
@@ -276,15 +275,15 @@ describe('TexTrade', function () {
 
 					describe('基于客户需求查询相关产品链', () => {
 						beforeEach(() => {
-							let row
 							return schema.findById(product.id)
 								.then(doc => {
-									row = doc.chains.push({date, customerRequirement})
+									doc.chains.push({date, customerRequirement})
+									doc.chains.push({date, customerRequirement})
 									return doc.save()
 								})
 								.then(doc => {
 									product = doc
-									chain = doc.chains[row - 1]
+									chain = doc.chains[0]
 								})
 								.catch(e => {
 									throw e
@@ -294,7 +293,7 @@ describe('TexTrade', function () {
 						it('列出产品链', () => {
 							return testTarget.listChainsByRequirement(customerRequirement)
 								.then((chains) => {
-									expect(chains.length).eql(1)
+									expect(chains.length).eql(2)
 									expect(chains[0]).eql({
 										id: chain.id,
 										date: date.toJSON(),
@@ -1939,7 +1938,7 @@ describe('TexTrade', function () {
 								expect(doc.userId).eqls(userId);
 								expect(doc.name).eqls('foo1');
 								expect(doc.email).eqls(email);
-								expect(doc.pic).eqls(pic);
+								expect(doc.pic).not.exist;
 								expect(doc.__v > __v).true
 							});
 					});
