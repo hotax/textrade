@@ -1511,7 +1511,7 @@ describe('TexTrade', function () {
 						part = '5ce79b88da5837277c3f3b65',
 						type = 'offer',
 						date = new Date(),
-						price = 12.56,
+						price = '12.56',
 						ref = '5ce79b88da5837277c3f4fd2',
 						remark = 'any reamrk',
 						tags = 'any tags'

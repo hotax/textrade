@@ -10,10 +10,11 @@ const quotSchema = createSchema({
         default: 'inquery',
         enum: ['inquery', 'offer', 'transaction']
     },
-    price: Number,
+    price: String,
     ref: ObjectId,
     remark: String,
-    tags: String 
+    tags: String,
+    creator: ObjectId 
 })
 
 const partQuotSchema = createCollection({
