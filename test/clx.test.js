@@ -2,6 +2,7 @@ const dbSave = require('./dbSave'),
 	__ = require('underscore')
 
 describe('TexTrade', function () {
+	const constDef = require('../ConstDef');
 	let stubs, err;
 	beforeEach(function () {
 		stubs = {};
@@ -20,6 +21,65 @@ describe('TexTrade', function () {
 				return clearDB(done);
 			})
 			
+			describe('Tags - 标记', ()=>{
+				const name = 'foo',
+				type = constDef.TYPE_TAG_QUOT
+
+				beforeEach(() => {
+					toCreate = {name}
+					schema = require('../db/schema/Tag')
+					testTarget = require('../server/biz/Tag')
+				})
+
+				describe('创建', () => {
+					it('必须给出名称', () => {
+						return testTarget.create({})
+							.should.be.rejectedWith()
+					})
+	
+					it('名称和类型必须唯一', () => {
+						return dbSave(schema, {name, type})
+							.then(() => {
+								return testTarget.create({name, type})
+							})
+							.should.be.rejectedWith()
+					})
+	
+					it('创建最简单的标记', () => {
+						return dbSave(schema, {name})
+							.then(() => {
+								return testTarget.create({name, type: 'aaa'})
+							})
+							.then(doc => {
+								return schema.findById(doc.id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(doc.name).eql(name)
+								// expect(doc.type).undefined
+							})
+							.catch(e => {
+								throw e
+							})
+					})
+
+					it('正确创建', () => {
+						return dbSave(schema, {name})
+							.then(() => {
+								return testTarget.create({name, type})
+							})
+							.then(doc => {
+								return schema.findById(doc.id)
+							})
+							.then(doc => {
+								doc = doc.toJSON()
+								expect(doc.name).eql(name)
+								expect(doc.type).eql(type)
+							})
+					})
+				})
+			})
+
 			describe('Products - 产品', () => {
 				const desc = 'desc',
 					content = 'content',
