@@ -26,8 +26,8 @@
 
 * 日期（date）
 * 标题（title）
-* 需求（requirement）-可支持MarkDown格式
-* 附件列表（attached）
+* 需求（requirement）- 可支持MarkDown格式
+* 附件列表（attached）- 客户提供的任何有助于描述需求的附件
 * 业务员（creator）
 * 标记（tags）
 
